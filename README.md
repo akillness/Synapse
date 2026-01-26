@@ -1,8 +1,11 @@
 # Synapse
 
+[![CI](https://github.com/akillness/Synapse/actions/workflows/ci.yml/badge.svg)](https://github.com/akillness/Synapse/actions/workflows/ci.yml)
+[![Docker](https://github.com/akillness/Synapse/actions/workflows/docker.yml/badge.svg)](https://github.com/akillness/Synapse/actions/workflows/docker.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![gRPC](https://img.shields.io/badge/gRPC-1.60+-green.svg)](https://grpc.io/)
+[![uv](https://img.shields.io/badge/uv-monorepo-blueviolet.svg)](https://github.com/astral-sh/uv)
 
 **Multi-Process AI Agent System** - A production-ready distributed AI agent orchestration framework with gRPC communication, resilience patterns, and comprehensive monitoring.
 
@@ -28,92 +31,62 @@
 
 ## Features
 
-### Phase 1: TCP Socket Communication
-- JSON-RPC 2.0 protocol with 4-byte length prefix framing
-- asyncio-based non-blocking I/O
-- Multi-process service isolation
+| Phase | Feature | Description |
+|-------|---------|-------------|
+| 1 | TCP Socket | JSON-RPC 2.0, asyncio, multi-process |
+| 2 | gRPC | Protocol Buffers, streaming, compression |
+| 3 | Resilience | Circuit Breaker, Retry, Timeout, Fallback |
+| 4 | API Gateway | FastAPI, Connection Pool, Load Balancer |
+| 5 | Deployment | Docker, Prometheus, Grafana |
+| 6 | Testing | 201 unit tests, pytest, coverage |
+| 7 | CI/CD | GitHub Actions, pre-commit |
 
-### Phase 2: gRPC Migration
-- Protocol Buffers for type-safe serialization
-- Server-side streaming for real-time updates
-- gzip compression enabled
+### Resilience Patterns
 
-### Phase 3: Resilience Patterns
-- **Circuit Breaker**: Prevents cascade failures (CLOSED → OPEN → HALF_OPEN)
-- **Retry with Exponential Backoff**: Automatic retry with jitter
-- **Adaptive Timeout**: Dynamic timeout based on response time history
-- **Fallback Mechanism**: Cached responses and rule-based defaults
+- **Circuit Breaker**: CLOSED → OPEN → HALF_OPEN state machine
+- **Retry**: Exponential backoff with jitter (gRPC standard)
+- **Adaptive Timeout**: P95 response time based dynamic timeout
+- **Fallback**: Cached responses + rule-based defaults
 - **Streaming Checkpoint**: Resume interrupted streams
-
-### Phase 4: API Gateway
-- FastAPI-based unified entry point
-- Connection pooling for efficient resource usage
-- Multiple load balancing strategies (Round Robin, Weighted, Least Connections)
-
-### Phase 5: Deployment
-- Docker multi-stage builds
-- docker-compose orchestration
-- Prometheus + Grafana monitoring
 
 ## Quick Start
 
 ### Prerequisites
 
 - Python 3.11+
-- [uv](https://github.com/astral-sh/uv) package manager
-- Docker & Docker Compose (optional)
+- [uv](https://github.com/astral-sh/uv) (recommended) or pip
 
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/synapse.git
-cd synapse
+git clone https://github.com/akillness/Synapse.git
+cd Synapse
 
-# Install with uv
+# Install with uv (recommended)
 uv sync
 
 # Or with pip
-pip install -e .
+pip install -e ".[dev]"
 ```
 
-### Running Services
-
-#### Local Development
+### Run Services
 
 ```bash
-# Start all gRPC services
+# Local development
 python run_grpc_services.py --service all
-
-# Start individual services
-python run_grpc_services.py --service claude
-python run_grpc_services.py --service gemini
-python run_grpc_services.py --service codex
-
-# Start API Gateway
 uvicorn gateway.api_gateway:app --host 0.0.0.0 --port 8000
-```
 
-#### Docker Compose
-
-```bash
-# Start all services with monitoring
+# Docker Compose (with monitoring)
 docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
 ```
 
-### Demo Client
+### Test
 
 ```bash
-# Run gRPC demo
-python demo_grpc_client.py
-
-# Test API Gateway
+# Health check
 curl http://localhost:8000/health
+
+# Create plan
 curl -X POST http://localhost:8000/api/v1/claude/plan \
   -H "Content-Type: application/json" \
   -d '{"task": "Build a REST API"}'
@@ -121,31 +94,99 @@ curl -X POST http://localhost:8000/api/v1/claude/plan \
 
 ## API Reference
 
-### Gateway Endpoints
+### REST Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/health` | Gateway health check |
-| GET | `/metrics` | Pool and load balancer metrics |
-| GET | `/api/v1/claude/health` | Claude service health |
-| POST | `/api/v1/claude/plan` | Create execution plan |
+| GET | `/health` | Gateway health |
+| GET | `/metrics` | Pool/LB metrics |
+| POST | `/api/v1/claude/plan` | Create plan |
 | POST | `/api/v1/claude/code` | Generate code |
-| GET | `/api/v1/gemini/health` | Gemini service health |
 | POST | `/api/v1/gemini/analyze` | Analyze content |
 | POST | `/api/v1/gemini/review` | Review code |
-| GET | `/api/v1/codex/health` | Codex service health |
 | POST | `/api/v1/codex/execute` | Execute command |
-| POST | `/api/v1/workflow` | Run multi-agent workflow |
+| POST | `/api/v1/workflow` | Multi-agent workflow |
 
 ### gRPC Services
 
-| Service | Port | Methods |
-|---------|------|---------|
-| Claude | 5011 | HealthCheck, CreatePlan, GenerateCode, StreamPlan |
-| Gemini | 5012 | HealthCheck, Analyze, ReviewCode, StreamAnalyze |
-| Codex | 5013 | HealthCheck, Execute, StreamExecute |
+| Service | Port | Role |
+|---------|------|------|
+| Claude | 5011 | Orchestrator (planning, code generation) |
+| Gemini | 5012 | Analyst (analysis, code review) |
+| Codex | 5013 | Executor (command execution) |
+
+## Project Structure
+
+```
+synapse/
+├── .github/workflows/     # CI/CD pipelines
+│   ├── ci.yml            # Test, lint, build
+│   └── docker.yml        # Docker build & push
+├── proto/                 # Protocol Buffers
+├── services/              # gRPC services
+│   ├── interceptors/      # Resilience patterns
+│   └── grpc_generated/    # Generated code
+├── clients/               # gRPC clients
+├── gateway/               # API Gateway
+├── tests/                 # 201 unit tests
+├── monitoring/            # Prometheus & Grafana
+├── docker-compose.yml
+├── Dockerfile
+├── pyproject.toml         # uv monorepo config
+└── .pre-commit-config.yaml
+```
+
+## Development
+
+### Testing
+
+```bash
+# Run all tests
+uv run pytest tests/ -v --ignore=tests/test_integration.py
+
+# With coverage
+uv run pytest --cov=services --cov=clients --cov=gateway
+```
+
+### Code Quality
+
+```bash
+# Lint
+uv run ruff check .
+
+# Format
+uv run ruff format .
+
+# Type check
+uv run mypy services clients gateway
+```
+
+### Pre-commit
+
+```bash
+# Install hooks
+uv run pre-commit install
+
+# Run manually
+uv run pre-commit run --all-files
+```
 
 ## Configuration
+
+### Resilience Config
+
+```python
+from clients.resilient_client import ResilienceConfig
+
+config = ResilienceConfig(
+    circuit_breaker_failure_threshold=3,
+    circuit_breaker_reset_timeout=30.0,
+    retry_max_attempts=4,
+    retry_initial_backoff=1.0,
+    adaptive_timeout_enabled=True,
+    fallback_enabled=True,
+)
+```
 
 ### Environment Variables
 
@@ -156,91 +197,15 @@ curl -X POST http://localhost:8000/api/v1/claude/plan \
 | `GEMINI_HOST` | 127.0.0.1 | Gemini service host |
 | `CODEX_HOST` | 127.0.0.1 | Codex service host |
 
-### Resilience Settings
-
-```python
-from clients.resilient_client import ResilienceConfig
-
-config = ResilienceConfig(
-    circuit_breaker_enabled=True,
-    circuit_breaker_failure_threshold=3,
-    circuit_breaker_reset_timeout=30.0,
-    retry_enabled=True,
-    retry_max_attempts=4,
-    retry_initial_backoff=1.0,
-    adaptive_timeout_enabled=True,
-    fallback_enabled=True,
-)
-```
-
-## Project Structure
-
-```
-synapse/
-├── proto/                    # Protocol Buffer definitions
-│   └── ai_agent.proto
-├── services/                 # gRPC service implementations
-│   ├── grpc_base_service.py
-│   ├── grpc_generated/       # Generated protobuf code
-│   └── interceptors/         # Resilience interceptors
-│       ├── circuit_breaker.py
-│       ├── retry.py
-│       └── adaptive_timeout.py
-├── clients/                  # gRPC clients
-│   ├── grpc_client.py
-│   └── resilient_client.py
-├── gateway/                  # API Gateway
-│   ├── api_gateway.py
-│   ├── connection_pool.py
-│   └── load_balancer.py
-├── config/                   # Configuration
-│   └── settings.py
-├── tests/                    # Test suite
-├── monitoring/               # Prometheus & Grafana configs
-├── docker-compose.yml
-├── Dockerfile
-├── pyproject.toml
-└── README.md
-```
-
-## Development
-
-### Running Tests
-
-```bash
-pytest
-pytest --cov=services --cov=clients --cov=gateway
-pytest tests/test_integration.py -v
-```
-
-### Code Quality
-
-```bash
-ruff check .
-ruff format .
-mypy services clients gateway
-```
-
-### Proto Compilation
-
-```bash
-python -m grpc_tools.protoc \
-  -I./proto \
-  --python_out=./services/grpc_generated \
-  --grpc_python_out=./services/grpc_generated \
-  ./proto/ai_agent.proto
-```
-
 ## Monitoring
 
-Access monitoring dashboards:
-
-- **Prometheus**: http://localhost:9090
-- **Grafana**: http://localhost:3000 (admin/synapse123)
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Prometheus | http://localhost:9090 | - |
+| Grafana | http://localhost:3000 | admin/synapse123 |
+| Gateway | http://localhost:8000 | - |
 
 ## Performance
-
-gRPC communication benchmarks:
 
 | Metric | Value |
 |--------|-------|
@@ -249,6 +214,19 @@ gRPC communication benchmarks:
 | Max latency | 0.91ms |
 | Throughput | ~2,700 req/s |
 
+## CI/CD
+
+### GitHub Actions
+
+- **CI**: Lint (Ruff) → Test (pytest) → Build (uv)
+- **Docker**: Build → Push to GHCR → Health check
+
+### Triggers
+
+- Push to `main`, `develop`
+- Pull requests to `main`
+- Tags `v*` (Docker release)
+
 ## License
 
-This project is licensed under the MIT License.
+MIT License - see [LICENSE](LICENSE) for details.
