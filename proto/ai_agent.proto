@@ -1,0 +1,374 @@
+// Multi-Process AI Agent System - Protocol Buffer 정의
+// Version: 1.0.0
+
+syntax = "proto3";
+
+package ai_agent;
+
+// gRPC services defined below
+
+// ============================================================
+// 공통 메시지 타입
+// ============================================================
+
+// 범용 요청
+message AgentRequest {
+    string request_id = 1;
+    string source_agent = 2;
+    string target_agent = 3;
+    string method = 4;
+    bytes payload = 5;
+    map<string, string> metadata = 6;
+    int64 timestamp = 7;
+}
+
+// 범용 응답
+message AgentResponse {
+    string request_id = 1;
+    bool success = 2;
+    bytes result = 3;
+    string error_message = 4;
+    int32 error_code = 5;
+    int64 timestamp = 6;
+}
+
+// 헬스 체크 (표준 grpc.health.v1 호환)
+message HealthCheckRequest {
+    string service = 1;
+}
+
+message HealthCheckResponse {
+    enum ServingStatus {
+        UNKNOWN = 0;
+        SERVING = 1;
+        NOT_SERVING = 2;
+        SERVICE_UNKNOWN = 3;
+    }
+    ServingStatus status = 1;
+    string version = 2;
+    int64 uptime_seconds = 3;
+    int32 active_connections = 4;
+}
+
+// ============================================================
+// Claude 서비스 (Orchestrator)
+// ============================================================
+
+// 계획 요청
+message PlanRequest {
+    string task_description = 1;
+    repeated string context_files = 2;
+    repeated string constraints = 3;
+    map<string, string> options = 4;
+}
+
+// 계획 응답
+message PlanResponse {
+    string task = 1;
+    repeated PlanStep steps = 2;
+    int32 total_steps = 3;
+    repeated string estimated_agents = 4;
+    string created_at = 5;
+
+    message PlanStep {
+        int32 order = 1;
+        string phase = 2;
+        string action = 3;
+        string agent = 4;
+        string description = 5;
+        map<string, string> params = 6;
+    }
+}
+
+// 코드 생성 요청
+message GenerateCodeRequest {
+    string description = 1;
+    string language = 2;
+    string context = 3;
+    map<string, string> options = 4;
+}
+
+// 코드 생성 응답
+message GenerateCodeResponse {
+    string language = 1;
+    string code = 2;
+    string description = 3;
+    string generated_at = 4;
+}
+
+// 오케스트레이션 요청
+message OrchestrateRequest {
+    string workflow_id = 1;
+    repeated WorkflowStep workflow = 2;
+    map<string, string> context = 3;
+
+    message WorkflowStep {
+        int32 order = 1;
+        string agent = 2;
+        string action = 3;
+        bytes params = 4;
+    }
+}
+
+// 오케스트레이션 응답
+message OrchestrateResponse {
+    string workflow_id = 1;
+    repeated StepResult results = 2;
+    bool completed = 3;
+    string completed_at = 4;
+
+    message StepResult {
+        int32 step = 1;
+        string agent = 2;
+        string action = 3;
+        string status = 4;
+        bytes result = 5;
+        string completed_at = 6;
+    }
+}
+
+// ============================================================
+// Gemini 서비스 (Analyst)
+// ============================================================
+
+// 분석 요청
+message AnalyzeRequest {
+    string content = 1;
+    string analysis_type = 2;  // "code", "documentation", "general"
+    int32 max_tokens = 3;
+    map<string, string> options = 4;
+}
+
+// 분석 응답
+message AnalyzeResponse {
+    string analysis_type = 1;
+    int64 content_length = 2;
+    int64 token_estimate = 3;
+    repeated Finding findings = 4;
+    string summary = 5;
+    string analyzed_at = 6;
+
+    message Finding {
+        string category = 1;
+        string severity = 2;  // "info", "warning", "error", "critical"
+        string description = 3;
+        string suggestion = 4;
+    }
+}
+
+// 코드 리뷰 요청
+message ReviewCodeRequest {
+    string code = 1;
+    string language = 2;
+    string review_type = 3;  // "quick", "standard", "comprehensive"
+    map<string, string> options = 4;
+}
+
+// 코드 리뷰 응답
+message ReviewCodeResponse {
+    string language = 1;
+    string review_type = 2;
+    int64 code_length = 3;
+    repeated Issue issues = 4;
+    double overall_score = 5;
+    string reviewed_at = 6;
+
+    message Issue {
+        string type = 1;
+        string severity = 2;
+        int32 line = 3;
+        string message = 4;
+        string suggestion = 5;
+    }
+}
+
+// 리서치 요청
+message ResearchRequest {
+    string query = 1;
+    repeated string sources = 2;
+    string depth = 3;  // "quick", "standard", "deep"
+}
+
+// 리서치 응답
+message ResearchResponse {
+    string query = 1;
+    string depth = 2;
+    repeated ResearchResult results = 3;
+    int32 sources_consulted = 4;
+    string researched_at = 5;
+
+    message ResearchResult {
+        string topic = 1;
+        string finding = 2;
+        double confidence = 3;
+        string relevance = 4;
+    }
+}
+
+// ============================================================
+// Codex 서비스 (Executor)
+// ============================================================
+
+// 실행 요청
+message ExecuteRequest {
+    string command = 1;
+    string working_dir = 2;
+    map<string, string> environment = 3;
+    int32 timeout_seconds = 4;
+}
+
+// 실행 응답
+message ExecuteResponse {
+    bool success = 1;
+    string command = 2;
+    int32 exit_code = 3;
+    string stdout = 4;
+    string stderr = 5;
+    double duration_seconds = 6;
+    string executed_at = 7;
+}
+
+// 빌드 요청
+message BuildRequest {
+    string project_dir = 1;
+    string build_command = 2;
+    map<string, string> environment = 3;
+}
+
+// 빌드 응답
+message BuildResponse {
+    bool success = 1;
+    string project_dir = 2;
+    string build_command = 3;
+    int32 exit_code = 4;
+    string stdout = 5;
+    string stderr = 6;
+    double duration_seconds = 7;
+    string built_at = 8;
+}
+
+// 테스트 요청
+message TestRequest {
+    string project_dir = 1;
+    string test_command = 2;
+    bool coverage = 3;
+}
+
+// 테스트 응답
+message TestResponse {
+    bool success = 1;
+    string project_dir = 2;
+    string test_command = 3;
+    int32 exit_code = 4;
+    string output = 5;
+    string errors = 6;
+    TestResults test_results = 7;
+    double duration_seconds = 8;
+    string tested_at = 9;
+
+    message TestResults {
+        int32 passed = 1;
+        int32 failed = 2;
+        int32 skipped = 3;
+        double coverage_percent = 4;
+    }
+}
+
+// 배포 요청
+message DeployRequest {
+    string target = 1;  // "local", "staging", "production"
+    map<string, string> config = 2;
+    bool dry_run = 3;
+}
+
+// 배포 응답
+message DeployResponse {
+    bool success = 1;
+    string target = 2;
+    bool dry_run = 3;
+    string message = 4;
+    repeated string steps = 5;
+    string deployed_at = 6;
+}
+
+// ============================================================
+// 스트리밍 메시지 (실시간 로그/진행상황)
+// ============================================================
+
+message StreamMessage {
+    string stream_id = 1;
+    string type = 2;  // "log", "progress", "result", "error"
+    string content = 3;
+    double progress_percent = 4;
+    int64 timestamp = 5;
+}
+
+// ============================================================
+// 서비스 정의
+// ============================================================
+
+// Claude 서비스 (Orchestrator)
+service ClaudeService {
+    // 헬스 체크
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+
+    // 범용 처리
+    rpc Process(AgentRequest) returns (AgentResponse);
+
+    // 계획 수립
+    rpc CreatePlan(PlanRequest) returns (PlanResponse);
+
+    // 코드 생성
+    rpc GenerateCode(GenerateCodeRequest) returns (GenerateCodeResponse);
+
+    // 오케스트레이션
+    rpc Orchestrate(OrchestrateRequest) returns (OrchestrateResponse);
+
+    // 스트리밍 계획 수립
+    rpc StreamPlan(PlanRequest) returns (stream StreamMessage);
+}
+
+// Gemini 서비스 (Analyst)
+service GeminiService {
+    // 헬스 체크
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+
+    // 범용 처리
+    rpc Process(AgentRequest) returns (AgentResponse);
+
+    // 분석
+    rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+
+    // 코드 리뷰
+    rpc ReviewCode(ReviewCodeRequest) returns (ReviewCodeResponse);
+
+    // 리서치
+    rpc Research(ResearchRequest) returns (ResearchResponse);
+
+    // 스트리밍 분석
+    rpc StreamAnalyze(AnalyzeRequest) returns (stream StreamMessage);
+}
+
+// Codex 서비스 (Executor)
+service CodexService {
+    // 헬스 체크
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+
+    // 범용 처리
+    rpc Process(AgentRequest) returns (AgentResponse);
+
+    // 명령 실행
+    rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+
+    // 빌드
+    rpc Build(BuildRequest) returns (BuildResponse);
+
+    // 테스트
+    rpc Test(TestRequest) returns (TestResponse);
+
+    // 배포
+    rpc Deploy(DeployRequest) returns (DeployResponse);
+
+    // 스트리밍 실행 (실시간 로그)
+    rpc StreamExecute(ExecuteRequest) returns (stream StreamMessage);
+}
