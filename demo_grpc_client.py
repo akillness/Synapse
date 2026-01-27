@@ -3,6 +3,7 @@
 gRPC 데모 클라이언트
 Usage: python demo_grpc_client.py
 """
+
 import asyncio
 import json
 import sys
@@ -41,14 +42,13 @@ async def demo_claude():
         # 계획 수립
         plan = await client.create_plan(
             task="Build a REST API for user management",
-            constraints=["Use Python FastAPI", "Include authentication"]
+            constraints=["Use Python FastAPI", "Include authentication"],
         )
         print_result("Plan Creation", plan)
 
         # 코드 생성
         code = await client.generate_code(
-            description="User authentication middleware",
-            language="python"
+            description="User authentication middleware", language="python"
         )
         print_result("Code Generation", code)
 
@@ -57,7 +57,9 @@ async def demo_claude():
         print("│ Streaming Plan")
         print(f"{'─' * 60}")
         async for message in client.stream_plan("Build feature"):
-            print(f"  [{message['type']}] {message['content']} ({message['progress_percent']:.0f}%)")
+            print(
+                f"  [{message['type']}] {message['content']} ({message['progress_percent']:.0f}%)"
+            )
 
 
 async def demo_gemini():
@@ -73,24 +75,18 @@ async def demo_gemini():
         print_result("Health Check", health)
 
         # 코드 분석
-        sample_code = '''
+        sample_code = """
 def calculate_total(items):
     total = 0
     for item in items:
         total += item.price * item.quantity
     return total
-'''
-        analysis = await client.analyze(
-            content=sample_code,
-            analysis_type="code"
-        )
+"""
+        analysis = await client.analyze(content=sample_code, analysis_type="code")
         print_result("Code Analysis", analysis)
 
         # 코드 리뷰
-        review = await client.review_code(
-            code=sample_code,
-            language="python"
-        )
+        review = await client.review_code(code=sample_code, language="python")
         print_result("Code Review", review)
 
 
@@ -107,17 +103,11 @@ async def demo_codex():
         print_result("Health Check", health)
 
         # 명령 실행
-        result = await client.execute(
-            command="echo 'Hello from Codex gRPC!'",
-            timeout=10
-        )
+        result = await client.execute(command="echo 'Hello from Codex gRPC!'", timeout=10)
         print_result("Execute: echo", result)
 
         # ls 명령
-        ls_result = await client.execute(
-            command="ls -la",
-            timeout=10
-        )
+        ls_result = await client.execute(command="ls -la", timeout=10)
         print_result("Execute: ls -la", ls_result)
 
         # 스트리밍 실행
@@ -139,45 +129,33 @@ async def demo_workflow():
     codex = CodexGrpcClient()
 
     # 모든 서비스 연결
-    await asyncio.gather(
-        claude.connect(),
-        gemini.connect(),
-        codex.connect()
-    )
+    await asyncio.gather(claude.connect(), gemini.connect(), codex.connect())
 
     try:
         print("\n[Step 1] Claude gRPC: Creating plan...")
         plan = await claude.create_plan(task="Implement user login feature")
         print(f"  ✓ Plan created with {plan['total_steps']} steps")
-        for step in plan['steps']:
+        for step in plan["steps"]:
             print(f"    {step['order']}. [{step['agent']}] {step['action']}")
 
         print("\n[Step 2] Gemini gRPC: Analyzing requirements...")
         analysis = await gemini.analyze(
-            content="User login feature with JWT authentication",
-            analysis_type="code"
+            content="User login feature with JWT authentication", analysis_type="code"
         )
         print(f"  ✓ Analysis complete: {len(analysis['findings'])} findings")
 
         print("\n[Step 3] Claude gRPC: Generating code...")
         code = await claude.generate_code(
-            description="JWT authentication handler",
-            language="python"
+            description="JWT authentication handler", language="python"
         )
         print(f"  ✓ Code generated ({len(code['code'])} chars)")
 
         print("\n[Step 4] Gemini gRPC: Reviewing code...")
-        review = await gemini.review_code(
-            code=code['code'],
-            language="python"
-        )
+        review = await gemini.review_code(code=code["code"], language="python")
         print(f"  ✓ Review score: {review['overall_score']}")
 
         print("\n[Step 5] Codex gRPC: Running tests...")
-        result = await codex.execute(
-            command="echo 'gRPC Tests passed!'",
-            timeout=10
-        )
+        result = await codex.execute(command="echo 'gRPC Tests passed!'", timeout=10)
         print(f"  ✓ Result: {result['stdout'].strip()}")
 
         print("\n" + "─" * 60)
@@ -185,11 +163,7 @@ async def demo_workflow():
         print("─" * 60)
 
     finally:
-        await asyncio.gather(
-            claude.disconnect(),
-            gemini.disconnect(),
-            codex.disconnect()
-        )
+        await asyncio.gather(claude.disconnect(), gemini.disconnect(), codex.disconnect())
 
 
 async def compare_tcp_vs_grpc():
@@ -215,6 +189,7 @@ async def compare_tcp_vs_grpc():
     # TCP 테스트 (Phase 1 클라이언트가 있다면)
     try:
         from clients.tcp_client import ClaudeClient as TcpClaudeClient
+
         tcp_client = TcpClaudeClient()
         await tcp_client.connect()
 
@@ -227,14 +202,14 @@ async def compare_tcp_vs_grpc():
         await tcp_client.disconnect()
 
         print("\n  TCP (JSON-RPC):")
-        print(f"    Average: {sum(tcp_times)/len(tcp_times):.2f}ms")
+        print(f"    Average: {sum(tcp_times) / len(tcp_times):.2f}ms")
         print(f"    Min: {min(tcp_times):.2f}ms")
         print(f"    Max: {max(tcp_times):.2f}ms")
     except Exception as e:
         print(f"\n  TCP: Not available ({e})")
 
     print("\n  gRPC (Protobuf):")
-    print(f"    Average: {sum(grpc_times)/len(grpc_times):.2f}ms")
+    print(f"    Average: {sum(grpc_times) / len(grpc_times):.2f}ms")
     print(f"    Min: {min(grpc_times):.2f}ms")
     print(f"    Max: {max(grpc_times):.2f}ms")
 
@@ -271,4 +246,5 @@ async def main():
 
 if __name__ == "__main__":
     import grpc.aio
+
     asyncio.run(main())

@@ -37,8 +37,7 @@ class CircuitBreakerOpenError(Exception):
         self.service_name = service_name
         self.reset_timeout = reset_timeout
         super().__init__(
-            f"Circuit breaker is OPEN for service '{service_name}'. "
-            f"Reset in {reset_timeout:.1f}s"
+            f"Circuit breaker is OPEN for service '{service_name}'. Reset in {reset_timeout:.1f}s"
         )
 
 
@@ -175,9 +174,7 @@ class CircuitBreaker:
 
             if current_state == CircuitBreakerState.HALF_OPEN:
                 # HALF_OPEN에서 실패 → 즉시 OPEN
-                logger.warning(
-                    f"CircuitBreaker '{self.name}' failure in HALF_OPEN, reopening"
-                )
+                logger.warning(f"CircuitBreaker '{self.name}' failure in HALF_OPEN, reopening")
                 self._transition_to(CircuitBreakerState.OPEN)
 
             elif current_state == CircuitBreakerState.CLOSED:
@@ -213,9 +210,7 @@ class CircuitBreaker:
             }
         )
 
-        logger.warning(
-            f"CircuitBreaker '{self.name}' state: {old_state.value} → {new_state.value}"
-        )
+        logger.warning(f"CircuitBreaker '{self.name}' state: {old_state.value} → {new_state.value}")
 
     def get_metrics(self) -> dict[str, Any]:
         """메트릭 반환"""
@@ -279,20 +274,16 @@ class CircuitBreakerInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 # Fallback이 있으면 실행
                 if self.fallback:
                     logger.warning(
-                        f"Circuit breaker OPEN, using fallback for "
-                        f"{client_call_details.method}"
+                        f"Circuit breaker OPEN, using fallback for {client_call_details.method}"
                     )
                     return await self.fallback(request)
 
                 # Fallback 없으면 에러
-                raise CircuitBreakerOpenError(
-                    self.circuit_breaker.name, max(0, reset_time)
-                )
+                raise CircuitBreakerOpenError(self.circuit_breaker.name, max(0, reset_time))
 
             # HALF_OPEN에서 최대 호출 초과
             logger.warning(
-                f"Circuit breaker HALF_OPEN at capacity for "
-                f"{client_call_details.method}"
+                f"Circuit breaker HALF_OPEN at capacity for {client_call_details.method}"
             )
             if self.fallback:
                 return await self.fallback(request)
@@ -341,9 +332,7 @@ class CircuitBreakerStreamInterceptor(grpc.aio.UnaryStreamClientInterceptor):
                 reset_time = self.circuit_breaker.config.reset_timeout - (
                     time.time() - (self.circuit_breaker._last_failure_time or 0)
                 )
-                raise CircuitBreakerOpenError(
-                    self.circuit_breaker.name, max(0, reset_time)
-                )
+                raise CircuitBreakerOpenError(self.circuit_breaker.name, max(0, reset_time))
 
         try:
             response = await continuation(client_call_details, request)

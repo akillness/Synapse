@@ -111,8 +111,7 @@ class StreamCheckpointManager:
                 state.checkpoints.append(checkpoint)
 
                 logger.debug(
-                    f"Checkpoint saved: {stream_id} seq={sequence} "
-                    f"progress={progress_percent:.1f}%"
+                    f"Checkpoint saved: {stream_id} seq={sequence} progress={progress_percent:.1f}%"
                 )
                 return checkpoint
 
@@ -150,11 +149,7 @@ class StreamCheckpointManager:
     async def _cleanup_expired(self):
         """만료된 스트림 정리"""
         now = time.time()
-        expired = [
-            sid
-            for sid, state in self._streams.items()
-            if now - state.started_at > self.ttl
-        ]
+        expired = [sid for sid, state in self._streams.items() if now - state.started_at > self.ttl]
         for sid in expired:
             del self._streams[sid]
 
@@ -206,8 +201,7 @@ class ResumableStreamWrapper:
 
         if resume_point and self.resume_factory:
             logger.info(
-                f"Resuming stream {self.stream_id} from sequence "
-                f"{resume_point.last_sequence}"
+                f"Resuming stream {self.stream_id} from sequence {resume_point.last_sequence}"
             )
             self._sequence = resume_point.last_sequence
             stream = self.resume_factory(resume_point.last_sequence)

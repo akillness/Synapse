@@ -2,6 +2,7 @@
 gRPC 베이스 서비스 클래스
 asyncio 기반 고성능 서비스
 """
+
 import asyncio
 import logging
 import signal
@@ -49,9 +50,7 @@ class GrpcBaseService(ABC):
         if not self.logger.handlers:
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(
-                logging.Formatter(
-                    "%(asctime)s | %(name)-15s | %(levelname)-8s | %(message)s"
-                )
+                logging.Formatter("%(asctime)s | %(name)-15s | %(levelname)-8s | %(message)s")
             )
             self.logger.addHandler(handler)
 
@@ -76,9 +75,7 @@ class GrpcBaseService(ABC):
         self._register_services()
 
         # 헬스 체크 서비스 등록
-        health_pb2_grpc.add_HealthServicer_to_server(
-            self.health_servicer, self.server
-        )
+        health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
         # 포트 바인딩
         listen_addr = f"{self.host}:{self.port}"
@@ -95,9 +92,7 @@ class GrpcBaseService(ABC):
         # 시그널 핸들러
         loop = asyncio.get_event_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(
-                sig, lambda: asyncio.create_task(self.stop())
-            )
+            loop.add_signal_handler(sig, lambda: asyncio.create_task(self.stop()))
 
         # 종료 대기
         await self.server.wait_for_termination()
@@ -280,7 +275,7 @@ if __name__ == "__main__":
             yield ai_agent_pb2.StreamMessage(
                 stream_id=f"plan-{request.task_description[:10]}",
                 type="progress",
-                content=f"Phase {i+1}: {phase}",
+                content=f"Phase {i + 1}: {phase}",
                 progress_percent=(i + 1) / len(phases) * 100,
                 timestamp=int(time.time() * 1000),
             )
@@ -304,9 +299,7 @@ class ClaudeGrpcService(GrpcBaseService):
     def _register_services(self):
         """서비스 등록"""
         servicer = ClaudeGrpcServicer(self)
-        ai_agent_pb2_grpc.add_ClaudeServiceServicer_to_server(
-            servicer, self.server
-        )
+        ai_agent_pb2_grpc.add_ClaudeServiceServicer_to_server(servicer, self.server)
 
 
 class GeminiGrpcServicer(ai_agent_pb2_grpc.GeminiServiceServicer):
@@ -393,17 +386,29 @@ class GeminiGrpcService(GrpcBaseService):
 
     def _register_services(self):
         servicer = GeminiGrpcServicer(self)
-        ai_agent_pb2_grpc.add_GeminiServiceServicer_to_server(
-            servicer, self.server
-        )
+        ai_agent_pb2_grpc.add_GeminiServiceServicer_to_server(servicer, self.server)
 
 
 class CodexGrpcServicer(ai_agent_pb2_grpc.CodexServiceServicer):
     """Codex gRPC 서비스 구현"""
 
     ALLOWED_COMMANDS = [
-        "echo", "ls", "pwd", "date", "cat", "head", "tail",
-        "wc", "grep", "find", "python", "pip", "npm", "node", "git", "make",
+        "echo",
+        "ls",
+        "pwd",
+        "date",
+        "cat",
+        "head",
+        "tail",
+        "wc",
+        "grep",
+        "find",
+        "python",
+        "pip",
+        "npm",
+        "node",
+        "git",
+        "make",
     ]
 
     def __init__(self, service: "CodexGrpcService"):
@@ -443,6 +448,7 @@ class CodexGrpcServicer(ai_agent_pb2_grpc.CodexServiceServicer):
 
         try:
             import os
+
             process = await asyncio.create_subprocess_shell(
                 request.command,
                 stdout=asyncio.subprocess.PIPE,
@@ -486,6 +492,7 @@ class CodexGrpcServicer(ai_agent_pb2_grpc.CodexServiceServicer):
             return False
 
         import os
+
         base_cmd = os.path.basename(cmd_parts[0])
 
         return base_cmd in self.ALLOWED_COMMANDS
@@ -525,9 +532,7 @@ class CodexGrpcService(GrpcBaseService):
 
     def _register_services(self):
         servicer = CodexGrpcServicer(self)
-        ai_agent_pb2_grpc.add_CodexServiceServicer_to_server(
-            servicer, self.server
-        )
+        ai_agent_pb2_grpc.add_CodexServiceServicer_to_server(servicer, self.server)
 
 
 # 서비스 실행 함수
@@ -535,9 +540,11 @@ async def run_claude_grpc():
     service = ClaudeGrpcService()
     await service.start()
 
+
 async def run_gemini_grpc():
     service = GeminiGrpcService()
     await service.start()
+
 
 async def run_codex_grpc():
     service = CodexGrpcService()
@@ -546,6 +553,7 @@ async def run_codex_grpc():
 
 if __name__ == "__main__":
     import sys
+
     service_name = sys.argv[1] if len(sys.argv) > 1 else "claude"
 
     services = {

@@ -85,9 +85,7 @@ class TimeoutManager:
         """메서드별 적응형 타임아웃 반환"""
         method_name = self._extract_method_name(method)
 
-        base_timeout = self.config.method_timeouts.get(
-            method_name, self.config.default_timeout
-        )
+        base_timeout = self.config.method_timeouts.get(method_name, self.config.default_timeout)
 
         if not self.config.adaptive_enabled:
             return base_timeout

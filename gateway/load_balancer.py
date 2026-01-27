@@ -117,9 +117,7 @@ class LeastResponseTimeStrategy(LoadBalancerStrategy):
 
         return min(
             healthy,
-            key=lambda e: e.avg_response_time
-            if e.avg_response_time > 0
-            else float("inf"),
+            key=lambda e: e.avg_response_time if e.avg_response_time > 0 else float("inf"),
         )
 
 
@@ -145,9 +143,7 @@ class LoadBalancer:
         logger.info(f"Added endpoint {endpoint.address} to {self.service_name}")
 
     def remove_endpoint(self, host: str, port: int):
-        self._endpoints = [
-            e for e in self._endpoints if not (e.host == host and e.port == port)
-        ]
+        self._endpoints = [e for e in self._endpoints if not (e.host == host and e.port == port)]
 
     def set_health_checker(self, checker):
         self._health_checker = checker

@@ -3,6 +3,7 @@ Phase 1 통합 테스트
 서비스들이 실행 중인 상태에서 테스트 실행:
   python -m pytest tests/test_integration.py -v
 """
+
 import asyncio
 import sys
 from pathlib import Path
@@ -69,10 +70,7 @@ class TestClaudeService:
         """범용 처리 테스트"""
         client = ClaudeClient()
         async with client.session():
-            result = await client.process(
-                task="Test task",
-                content="Test content"
-            )
+            result = await client.process(task="Test task", content="Test content")
 
             assert "output" in result
             assert result["agent"] == "claude"
@@ -83,8 +81,7 @@ class TestClaudeService:
         client = ClaudeClient()
         async with client.session():
             result = await client.plan(
-                task="Build a REST API",
-                constraints=["Use Python", "Include tests"]
+                task="Build a REST API", constraints=["Use Python", "Include tests"]
             )
 
             assert "steps" in result
@@ -97,8 +94,7 @@ class TestClaudeService:
         client = ClaudeClient()
         async with client.session():
             result = await client.generate_code(
-                description="Hello world function",
-                language="python"
+                description="Hello world function", language="python"
             )
 
             assert "code" in result
@@ -124,8 +120,7 @@ class TestGeminiService:
         client = GeminiClient()
         async with client.session():
             result = await client.analyze(
-                content="def hello(): return 'world'",
-                analysis_type="code"
+                content="def hello(): return 'world'", analysis_type="code"
             )
 
             assert "findings" in result
@@ -136,10 +131,7 @@ class TestGeminiService:
         """리서치 테스트"""
         client = GeminiClient()
         async with client.session():
-            result = await client.research(
-                query="Python async programming",
-                depth="standard"
-            )
+            result = await client.research(query="Python async programming", depth="standard")
 
             assert "results" in result
             assert "query" in result
@@ -149,10 +141,7 @@ class TestGeminiService:
         """코드 리뷰 테스트"""
         client = GeminiClient()
         async with client.session():
-            result = await client.review_code(
-                code="def foo(): pass",
-                language="python"
-            )
+            result = await client.review_code(code="def foo(): pass", language="python")
 
             assert "issues" in result
             assert "overall_score" in result
@@ -176,10 +165,7 @@ class TestCodexService:
         """허용된 명령 실행 테스트"""
         client = CodexClient()
         async with client.session():
-            result = await client.execute(
-                command="echo Hello World",
-                timeout=10
-            )
+            result = await client.execute(command="echo Hello World", timeout=10)
 
             assert result["success"] is True
             assert "Hello World" in result["stdout"]
@@ -189,10 +175,7 @@ class TestCodexService:
         """ls 명령 테스트"""
         client = CodexClient()
         async with client.session():
-            result = await client.execute(
-                command="ls -la",
-                timeout=10
-            )
+            result = await client.execute(command="ls -la", timeout=10)
 
             assert result["success"] is True
             assert result["exit_code"] == 0
@@ -202,13 +185,12 @@ class TestCodexService:
         """차단된 명령 테스트"""
         client = CodexClient()
         async with client.session():
-            result = await client.execute(
-                command="sudo rm -rf /",
-                timeout=10
-            )
+            result = await client.execute(command="sudo rm -rf /", timeout=10)
 
             assert result["success"] is False
-            assert "not allowed" in result["error"].lower() or "dangerous" in result["error"].lower()
+            assert (
+                "not allowed" in result["error"].lower() or "dangerous" in result["error"].lower()
+            )
 
 
 class TestMultiServiceWorkflow:
@@ -222,11 +204,7 @@ class TestMultiServiceWorkflow:
         codex = CodexClient()
 
         # 모든 서비스 연결
-        await asyncio.gather(
-            claude.connect(),
-            gemini.connect(),
-            codex.connect()
-        )
+        await asyncio.gather(claude.connect(), gemini.connect(), codex.connect())
 
         try:
             # 1. Claude: 계획 수립
@@ -235,10 +213,7 @@ class TestMultiServiceWorkflow:
             print(f"✓ Plan created with {plan['total_steps']} steps")
 
             # 2. Gemini: 분석
-            analysis = await gemini.analyze(
-                content="sample code content",
-                analysis_type="code"
-            )
+            analysis = await gemini.analyze(content="sample code content", analysis_type="code")
             assert "findings" in analysis
             print(f"✓ Analysis completed with {len(analysis['findings'])} findings")
 
@@ -248,20 +223,12 @@ class TestMultiServiceWorkflow:
             print(f"✓ Execution completed: {execution['stdout'].strip()}")
 
         finally:
-            await asyncio.gather(
-                claude.disconnect(),
-                gemini.disconnect(),
-                codex.disconnect()
-            )
+            await asyncio.gather(claude.disconnect(), gemini.disconnect(), codex.disconnect())
 
     @pytest.mark.asyncio
     async def test_parallel_requests(self):
         """병렬 요청 테스트"""
-        clients = [
-            ClaudeClient(),
-            GeminiClient(),
-            CodexClient()
-        ]
+        clients = [ClaudeClient(), GeminiClient(), CodexClient()]
 
         # 모든 서비스 연결
         for client in clients:
@@ -270,9 +237,7 @@ class TestMultiServiceWorkflow:
         try:
             # 병렬로 헬스 체크
             results = await asyncio.gather(
-                clients[0].health(),
-                clients[1].health(),
-                clients[2].health()
+                clients[0].health(), clients[1].health(), clients[2].health()
             )
 
             assert all(r["status"] == "healthy" for r in results)

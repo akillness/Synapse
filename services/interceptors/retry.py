@@ -92,8 +92,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 if attempt > 0:
                     self._successful_retries += 1
                     logger.info(
-                        f"Retry succeeded on attempt {attempt + 1} for "
-                        f"{client_call_details.method}"
+                        f"Retry succeeded on attempt {attempt + 1} for {client_call_details.method}"
                     )
 
                 return response
@@ -102,9 +101,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
                 last_exception = e
 
                 if not self._is_retryable(e.code()):
-                    logger.debug(
-                        f"Non-retryable error {e.code()} for {client_call_details.method}"
-                    )
+                    logger.debug(f"Non-retryable error {e.code()} for {client_call_details.method}")
                     raise
 
                 if attempt < self.policy.max_attempts - 1:

@@ -1,6 +1,7 @@
 """
 멀티프로세스 AI 시스템 - 설정
 """
+
 import os
 from dataclasses import dataclass
 
@@ -8,6 +9,7 @@ from dataclasses import dataclass
 @dataclass
 class ServiceConfig:
     """서비스 설정"""
+
     name: str
     host: str
     port: int
@@ -16,6 +18,7 @@ class ServiceConfig:
 @dataclass
 class Settings:
     """전역 설정"""
+
     # 서비스 포트 매핑
     SERVICES: dict[str, ServiceConfig] = None
 

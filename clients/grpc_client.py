@@ -2,6 +2,7 @@
 gRPC 클라이언트
 asyncio 기반 고성능 클라이언트
 """
+
 import logging
 import sys
 from collections.abc import AsyncIterator
@@ -22,6 +23,7 @@ from services.grpc_generated import ai_agent_pb2, ai_agent_pb2_grpc
 @dataclass
 class GrpcConnectionConfig:
     """gRPC 연결 설정"""
+
     host: str = "127.0.0.1"
     port: int = 5011
     timeout: float = 30.0
@@ -58,7 +60,9 @@ class GrpcBaseClient:
                 ("grpc.max_receive_message_length", 50 * 1024 * 1024),
             ]
 
-            compression = grpc.Compression.Gzip if self.config.compression else grpc.Compression.NoCompression
+            compression = (
+                grpc.Compression.Gzip if self.config.compression else grpc.Compression.NoCompression
+            )
 
             self.channel = grpc.aio.insecure_channel(
                 self.address,
@@ -108,9 +112,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
     async def health_check(self) -> dict[str, Any]:
         """헬스 체크"""
         request = ai_agent_pb2.HealthCheckRequest(service="claude")
-        response = await self.stub.HealthCheck(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.HealthCheck(request, timeout=self.config.timeout)
         return {
             "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(response.status),
             "version": response.version,
@@ -127,9 +129,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
             task_description=task,
             constraints=constraints or [],
         )
-        response = await self.stub.CreatePlan(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.CreatePlan(request, timeout=self.config.timeout)
         return {
             "task": response.task,
             "steps": [
@@ -157,9 +157,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
             description=description,
             language=language,
         )
-        response = await self.stub.GenerateCode(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.GenerateCode(request, timeout=self.config.timeout)
         return {
             "language": response.language,
             "code": response.code,
@@ -200,9 +198,7 @@ class GeminiGrpcClient(GrpcBaseClient):
     async def health_check(self) -> dict[str, Any]:
         """헬스 체크"""
         request = ai_agent_pb2.HealthCheckRequest(service="gemini")
-        response = await self.stub.HealthCheck(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.HealthCheck(request, timeout=self.config.timeout)
         return {
             "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(response.status),
             "version": response.version,
@@ -219,9 +215,7 @@ class GeminiGrpcClient(GrpcBaseClient):
             content=content,
             analysis_type=analysis_type,
         )
-        response = await self.stub.Analyze(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.Analyze(request, timeout=self.config.timeout)
         return {
             "analysis_type": response.analysis_type,
             "content_length": response.content_length,
@@ -249,9 +243,7 @@ class GeminiGrpcClient(GrpcBaseClient):
             language=language,
             review_type="comprehensive",
         )
-        response = await self.stub.ReviewCode(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.ReviewCode(request, timeout=self.config.timeout)
         return {
             "language": response.language,
             "review_type": response.review_type,
@@ -286,9 +278,7 @@ class CodexGrpcClient(GrpcBaseClient):
     async def health_check(self) -> dict[str, Any]:
         """헬스 체크"""
         request = ai_agent_pb2.HealthCheckRequest(service="codex")
-        response = await self.stub.HealthCheck(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.HealthCheck(request, timeout=self.config.timeout)
         return {
             "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(response.status),
             "version": response.version,
@@ -303,14 +293,13 @@ class CodexGrpcClient(GrpcBaseClient):
     ) -> dict[str, Any]:
         """명령 실행"""
         import os
+
         request = ai_agent_pb2.ExecuteRequest(
             command=command,
             working_dir=working_dir or os.getcwd(),
             timeout_seconds=timeout,
         )
-        response = await self.stub.Execute(
-            request, timeout=self.config.timeout
-        )
+        response = await self.stub.Execute(request, timeout=self.config.timeout)
         return {
             "success": response.success,
             "command": response.command,
@@ -328,6 +317,7 @@ class CodexGrpcClient(GrpcBaseClient):
     ) -> AsyncIterator[dict[str, Any]]:
         """스트리밍 실행"""
         import os
+
         request = ai_agent_pb2.ExecuteRequest(
             command=command,
             working_dir=working_dir or os.getcwd(),

@@ -1,6 +1,7 @@
 """
 JSON-RPC 2.0 프로토콜 구현
 """
+
 import json
 import struct
 import uuid
@@ -11,6 +12,7 @@ from typing import Any
 
 class ErrorCode(IntEnum):
     """JSON-RPC 에러 코드"""
+
     PARSE_ERROR = -32700
     INVALID_REQUEST = -32600
     METHOD_NOT_FOUND = -32601
@@ -25,6 +27,7 @@ class ErrorCode(IntEnum):
 @dataclass
 class JsonRpcRequest:
     """JSON-RPC 2.0 요청"""
+
     method: str
     params: dict[str, Any] = field(default_factory=dict)
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -49,6 +52,7 @@ class JsonRpcRequest:
 @dataclass
 class JsonRpcError:
     """JSON-RPC 에러"""
+
     code: int
     message: str
     data: Any | None = None
@@ -63,6 +67,7 @@ class JsonRpcError:
 @dataclass
 class JsonRpcResponse:
     """JSON-RPC 2.0 응답"""
+
     id: str
     result: Any | None = None
     error: JsonRpcError | None = None
@@ -84,9 +89,7 @@ class JsonRpcResponse:
         return cls(id=id, result=result)
 
     @classmethod
-    def create_error(
-        cls, id: str, code: int, message: str, data: Any = None
-    ) -> "JsonRpcResponse":
+    def create_error(cls, id: str, code: int, message: str, data: Any = None) -> "JsonRpcResponse":
         """에러 응답 생성 (error 필드와 이름 충돌 방지)"""
         return cls(id=id, error=JsonRpcError(code, message, data))
 

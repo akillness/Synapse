@@ -49,9 +49,7 @@ class ConnectionPool(Generic[T]):
         self.config = config or PoolConfig()
         self.health_checker = health_checker
 
-        self._pool: asyncio.Queue[PooledConnection[T]] = asyncio.Queue(
-            maxsize=self.config.max_size
-        )
+        self._pool: asyncio.Queue[PooledConnection[T]] = asyncio.Queue(maxsize=self.config.max_size)
         self._all_connections: list[PooledConnection[T]] = []
         self._lock = asyncio.Lock()
         self._closed = False
@@ -68,9 +66,7 @@ class ConnectionPool(Generic[T]):
                 await self._create_connection()
 
         self._health_check_task = asyncio.create_task(self._health_check_loop())
-        logger.info(
-            f"Pool '{self.name}' initialized with {self.config.min_size} connections"
-        )
+        logger.info(f"Pool '{self.name}' initialized with {self.config.min_size} connections")
 
     async def _create_connection(self) -> PooledConnection[T]:
         conn = await self.factory()
@@ -99,9 +95,7 @@ class ConnectionPool(Generic[T]):
         pooled: PooledConnection[T] | None = None
 
         try:
-            pooled = await asyncio.wait_for(
-                self._pool.get(), timeout=self.config.acquire_timeout
-            )
+            pooled = await asyncio.wait_for(self._pool.get(), timeout=self.config.acquire_timeout)
 
             if not pooled.is_healthy:
                 await self._destroy_connection(pooled)

@@ -125,9 +125,7 @@ class ResilientGrpcClient:
             ]
 
             compression = (
-                grpc.Compression.Gzip
-                if self.config.compression
-                else grpc.Compression.NoCompression
+                grpc.Compression.Gzip if self.config.compression else grpc.Compression.NoCompression
             )
 
             self.channel = grpc.aio.insecure_channel(
@@ -191,16 +189,12 @@ class ResilientClaudeClient(ResilientGrpcClient):
         request = ai_agent_pb2.HealthCheckRequest(service="claude")
         response = await self.stub.HealthCheck(request)
         return {
-            "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(
-                response.status
-            ),
+            "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(response.status),
             "version": response.version,
             "uptime_seconds": response.uptime_seconds,
         }
 
-    async def create_plan(
-        self, task: str, constraints: list[str] | None = None
-    ) -> dict[str, Any]:
+    async def create_plan(self, task: str, constraints: list[str] | None = None) -> dict[str, Any]:
         request = ai_agent_pb2.PlanRequest(
             task_description=task,
             constraints=constraints or [],
@@ -223,12 +217,8 @@ class ResilientClaudeClient(ResilientGrpcClient):
             "created_at": response.created_at,
         }
 
-    async def generate_code(
-        self, description: str, language: str = "python"
-    ) -> dict[str, Any]:
-        request = ai_agent_pb2.GenerateCodeRequest(
-            description=description, language=language
-        )
+    async def generate_code(self, description: str, language: str = "python") -> dict[str, Any]:
+        request = ai_agent_pb2.GenerateCodeRequest(description=description, language=language)
         response = await self.stub.GenerateCode(request)
         return {
             "language": response.language,
@@ -265,19 +255,13 @@ class ResilientGeminiClient(ResilientGrpcClient):
         request = ai_agent_pb2.HealthCheckRequest(service="gemini")
         response = await self.stub.HealthCheck(request)
         return {
-            "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(
-                response.status
-            ),
+            "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(response.status),
             "version": response.version,
             "uptime_seconds": response.uptime_seconds,
         }
 
-    async def analyze(
-        self, content: str, analysis_type: str = "general"
-    ) -> dict[str, Any]:
-        request = ai_agent_pb2.AnalyzeRequest(
-            content=content, analysis_type=analysis_type
-        )
+    async def analyze(self, content: str, analysis_type: str = "general") -> dict[str, Any]:
+        request = ai_agent_pb2.AnalyzeRequest(content=content, analysis_type=analysis_type)
         response = await self.stub.Analyze(request)
         return {
             "analysis_type": response.analysis_type,
@@ -334,9 +318,7 @@ class ResilientCodexClient(ResilientGrpcClient):
         request = ai_agent_pb2.HealthCheckRequest(service="codex")
         response = await self.stub.HealthCheck(request)
         return {
-            "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(
-                response.status
-            ),
+            "status": ai_agent_pb2.HealthCheckResponse.ServingStatus.Name(response.status),
             "version": response.version,
             "uptime_seconds": response.uptime_seconds,
         }
@@ -376,9 +358,7 @@ class ResilientCodexClient(ResilientGrpcClient):
             }
 
 
-def create_resilient_client(
-    service_name: str, host: str = "127.0.0.1"
-) -> ResilientGrpcClient:
+def create_resilient_client(service_name: str, host: str = "127.0.0.1") -> ResilientGrpcClient:
     clients = {
         "claude": (ResilientClaudeClient, 5011),
         "gemini": (ResilientGeminiClient, 5012),

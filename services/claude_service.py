@@ -2,6 +2,7 @@
 Claude 서비스 - Orchestrator 역할
 계획 수립, 코드 생성, 스킬 해석 담당
 """
+
 import asyncio
 from datetime import datetime
 from typing import Any
@@ -157,13 +158,15 @@ if __name__ == "__main__":
             action = step.get("action", "")
 
             # 실제로는 여기서 다른 에이전트 호출
-            results.append({
-                "step": step.get("order", 0),
-                "agent": agent,
-                "action": action,
-                "status": "simulated",
-                "completed_at": datetime.now().isoformat(),
-            })
+            results.append(
+                {
+                    "step": step.get("order", 0),
+                    "agent": agent,
+                    "action": action,
+                    "status": "simulated",
+                    "completed_at": datetime.now().isoformat(),
+                }
+            )
 
         return {
             "workflow_id": params.get("workflow_id", ""),

@@ -2,6 +2,7 @@
 Gemini 서비스 - Analyst 역할
 대용량 분석 (1M+ 토큰), 리서치, 코드 리뷰 담당
 """
+
 import asyncio
 from datetime import datetime
 from typing import Any
@@ -63,9 +64,7 @@ class GeminiService(BaseService):
             "analyzed_at": datetime.now().isoformat(),
         }
 
-    def _perform_analysis(
-        self, content: str, analysis_type: str
-    ) -> list[dict[str, Any]]:
+    def _perform_analysis(self, content: str, analysis_type: str) -> list[dict[str, Any]]:
         """분석 수행"""
         findings = []
 
@@ -129,9 +128,7 @@ class GeminiService(BaseService):
             "researched_at": datetime.now().isoformat(),
         }
 
-    def _conduct_research(
-        self, query: str, sources: list[str], depth: str
-    ) -> list[dict[str, Any]]:
+    def _conduct_research(self, query: str, sources: list[str], depth: str) -> list[dict[str, Any]]:
         """리서치 수행"""
         return [
             {
@@ -166,29 +163,31 @@ class GeminiService(BaseService):
             "reviewed_at": datetime.now().isoformat(),
         }
 
-    def _review_code(
-        self, code: str, language: str, review_type: str
-    ) -> list[dict[str, Any]]:
+    def _review_code(self, code: str, language: str, review_type: str) -> list[dict[str, Any]]:
         """코드 리뷰 수행"""
         issues = []
 
         # 기본 리뷰 결과 (시뮬레이션)
         if len(code) > 0:
-            issues.append({
-                "type": "style",
-                "severity": "low",
-                "line": 1,
-                "message": "Consider adding module docstring",
-                "suggestion": "Add a docstring at the top of the module",
-            })
+            issues.append(
+                {
+                    "type": "style",
+                    "severity": "low",
+                    "line": 1,
+                    "message": "Consider adding module docstring",
+                    "suggestion": "Add a docstring at the top of the module",
+                }
+            )
 
         if "TODO" in code:
-            issues.append({
-                "type": "todo",
-                "severity": "info",
-                "message": "TODO comments found in code",
-                "suggestion": "Address or track TODO items",
-            })
+            issues.append(
+                {
+                    "type": "todo",
+                    "severity": "info",
+                    "message": "TODO comments found in code",
+                    "suggestion": "Address or track TODO items",
+                }
+            )
 
         return issues
 

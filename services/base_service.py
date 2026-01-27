@@ -1,6 +1,7 @@
 """
 베이스 서비스 클래스
 """
+
 import asyncio
 import contextlib
 import logging
@@ -63,9 +64,7 @@ class BaseService(ABC):
         if not self.logger.handlers:
             handler = logging.StreamHandler(sys.stdout)
             handler.setFormatter(
-                logging.Formatter(
-                    "%(asctime)s | %(name)-12s | %(levelname)-8s | %(message)s"
-                )
+                logging.Formatter("%(asctime)s | %(name)-12s | %(levelname)-8s | %(message)s")
             )
             self.logger.addHandler(handler)
 
@@ -240,7 +239,9 @@ class BaseService(ABC):
                 result = await result
 
             # 결과 검증
-            if callable(result) and not isinstance(result, (dict, list, str, int, float, bool, type(None))):
+            if callable(result) and not isinstance(
+                result, (dict, list, str, int, float, bool, type(None))
+            ):
                 self.logger.warning(f"Handler returned callable: {type(result)}")
                 result = {"error": "Handler returned invalid type"}
 
@@ -255,9 +256,7 @@ class BaseService(ABC):
                 str(e),
             )
 
-    async def _send_response(
-        self, writer: asyncio.StreamWriter, response: JsonRpcResponse
-    ):
+    async def _send_response(self, writer: asyncio.StreamWriter, response: JsonRpcResponse):
         """응답 전송"""
         try:
             # 타입 체크

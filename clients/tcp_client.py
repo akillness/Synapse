@@ -1,6 +1,7 @@
 """
 TCP 클라이언트 - 서비스 통신용
 """
+
 import asyncio
 import logging
 
@@ -25,6 +26,7 @@ from services.protocol import (
 @dataclass
 class ConnectionConfig:
     """연결 설정"""
+
     host: str = "127.0.0.1"
     port: int = 5001
     timeout: float = 30.0
@@ -127,9 +129,7 @@ class TcpClient:
             except Exception as e:
                 self.logger.error(f"Request error: {e}")
                 self._connected = False
-                return JsonRpcResponse.create_error(
-                    request.id, ErrorCode.INTERNAL_ERROR, str(e)
-                )
+                return JsonRpcResponse.create_error(request.id, ErrorCode.INTERNAL_ERROR, str(e))
 
     async def call(
         self,
@@ -222,10 +222,13 @@ class ClaudeClient(ServiceClient):
 
     async def plan(self, task: str, constraints: list = None) -> dict[str, Any]:
         """계획 수립"""
-        return await self.client.call("plan", {
-            "task": task,
-            "constraints": constraints or [],
-        })
+        return await self.client.call(
+            "plan",
+            {
+                "task": task,
+                "constraints": constraints or [],
+            },
+        )
 
     async def generate_code(
         self,
@@ -234,11 +237,14 @@ class ClaudeClient(ServiceClient):
         context: str = "",
     ) -> dict[str, Any]:
         """코드 생성"""
-        return await self.client.call("generate_code", {
-            "description": description,
-            "language": language,
-            "context": context,
-        })
+        return await self.client.call(
+            "generate_code",
+            {
+                "description": description,
+                "language": language,
+                "context": context,
+            },
+        )
 
     async def orchestrate(
         self,
@@ -246,11 +252,14 @@ class ClaudeClient(ServiceClient):
         context: dict = None,
     ) -> dict[str, Any]:
         """오케스트레이션"""
-        return await self.client.call("orchestrate", {
-            "workflow": workflow,
-            "context": context or {},
-            "workflow_id": str(uuid.uuid4()),
-        })
+        return await self.client.call(
+            "orchestrate",
+            {
+                "workflow": workflow,
+                "context": context or {},
+                "workflow_id": str(uuid.uuid4()),
+            },
+        )
 
 
 class GeminiClient(ServiceClient):
@@ -266,11 +275,14 @@ class GeminiClient(ServiceClient):
         max_tokens: int = 100000,
     ) -> dict[str, Any]:
         """대용량 분석"""
-        return await self.client.call("analyze", {
-            "content": content,
-            "type": analysis_type,
-            "max_tokens": max_tokens,
-        })
+        return await self.client.call(
+            "analyze",
+            {
+                "content": content,
+                "type": analysis_type,
+                "max_tokens": max_tokens,
+            },
+        )
 
     async def research(
         self,
@@ -279,11 +291,14 @@ class GeminiClient(ServiceClient):
         depth: str = "standard",
     ) -> dict[str, Any]:
         """리서치"""
-        return await self.client.call("research", {
-            "query": query,
-            "sources": sources or [],
-            "depth": depth,
-        })
+        return await self.client.call(
+            "research",
+            {
+                "query": query,
+                "sources": sources or [],
+                "depth": depth,
+            },
+        )
 
     async def review_code(
         self,
@@ -292,11 +307,14 @@ class GeminiClient(ServiceClient):
         review_type: str = "comprehensive",
     ) -> dict[str, Any]:
         """코드 리뷰"""
-        return await self.client.call("review_code", {
-            "code": code,
-            "language": language,
-            "review_type": review_type,
-        })
+        return await self.client.call(
+            "review_code",
+            {
+                "code": code,
+                "language": language,
+                "review_type": review_type,
+            },
+        )
 
 
 class CodexClient(ServiceClient):
@@ -314,12 +332,16 @@ class CodexClient(ServiceClient):
     ) -> dict[str, Any]:
         """명령 실행"""
         import os
-        return await self.client.call("execute", {
-            "command": command,
-            "working_dir": working_dir or os.getcwd(),
-            "timeout": timeout,
-            "env": env or {},
-        })
+
+        return await self.client.call(
+            "execute",
+            {
+                "command": command,
+                "working_dir": working_dir or os.getcwd(),
+                "timeout": timeout,
+                "env": env or {},
+            },
+        )
 
     async def build(
         self,
@@ -328,11 +350,14 @@ class CodexClient(ServiceClient):
         env: dict = None,
     ) -> dict[str, Any]:
         """빌드"""
-        return await self.client.call("build", {
-            "project_dir": project_dir,
-            "build_command": build_command,
-            "env": env or {},
-        })
+        return await self.client.call(
+            "build",
+            {
+                "project_dir": project_dir,
+                "build_command": build_command,
+                "env": env or {},
+            },
+        )
 
     async def test(
         self,
@@ -341,11 +366,14 @@ class CodexClient(ServiceClient):
         coverage: bool = False,
     ) -> dict[str, Any]:
         """테스트 실행"""
-        return await self.client.call("test", {
-            "project_dir": project_dir,
-            "test_command": test_command,
-            "coverage": coverage,
-        })
+        return await self.client.call(
+            "test",
+            {
+                "project_dir": project_dir,
+                "test_command": test_command,
+                "coverage": coverage,
+            },
+        )
 
     async def deploy(
         self,
@@ -354,11 +382,14 @@ class CodexClient(ServiceClient):
         dry_run: bool = True,
     ) -> dict[str, Any]:
         """배포"""
-        return await self.client.call("deploy", {
-            "target": target,
-            "config": config or {},
-            "dry_run": dry_run,
-        })
+        return await self.client.call(
+            "deploy",
+            {
+                "target": target,
+                "config": config or {},
+                "dry_run": dry_run,
+            },
+        )
 
 
 # 편의 함수
