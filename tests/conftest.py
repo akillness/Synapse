@@ -1,6 +1,6 @@
 """
 Pytest Configuration and Shared Fixtures
-Comprehensive Test Suite for Synapse AI Agent System
+Comprehensive Test Suite for Synaps AI Agent System
 """
 
 import asyncio

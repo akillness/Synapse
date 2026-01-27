@@ -14,12 +14,12 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'synapse-gateway'
+  - job_name: 'synaps-gateway'
     static_configs:
       - targets: ['gateway:8000']
     metrics_path: /metrics
 
-  - job_name: 'synapse-services'
+  - job_name: 'synaps-services'
     static_configs:
       - targets:
           - 'claude:5011'

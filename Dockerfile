@@ -23,8 +23,8 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . .
 
-RUN useradd -m -u 1000 synapse && chown -R synapse:synapse /app
-USER synapse
+RUN useradd -m -u 1000 synaps && chown -R synaps:synaps /app
+USER synaps
 
 EXPOSE 5011 5012 5013 8000
 

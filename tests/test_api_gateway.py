@@ -114,7 +114,7 @@ class TestApiGatewayAppCreation:
 
         app = create_app()
 
-        assert app.title == "Synapse AI Agent Gateway"
+        assert app.title == "Synaps AI Agent Gateway"
 
     def test_app_has_correct_version(self):
         from gateway.api_gateway import create_app

@@ -1,4 +1,4 @@
-# Synapse
+# Synaps
 
 [![CI](https://github.com/akillness/Synapse/actions/workflows/ci.yml/badge.svg)](https://github.com/akillness/Synapse/actions/workflows/ci.yml)
 [![Docker](https://github.com/akillness/Synapse/actions/workflows/docker.yml/badge.svg)](https://github.com/akillness/Synapse/actions/workflows/docker.yml)
@@ -40,6 +40,7 @@
 | 5 | Deployment | Docker, Prometheus, Grafana |
 | 6 | Testing | 201 unit tests, pytest, coverage |
 | 7 | CI/CD | GitHub Actions, pre-commit |
+| 8 | TUI Dashboard | Textual-based terminal UI for monitoring |
 
 ### Resilience Patterns
 
@@ -80,6 +81,23 @@ uvicorn gateway.api_gateway:app --host 0.0.0.0 --port 8000
 docker-compose up -d
 ```
 
+### TUI Dashboard
+
+```bash
+# Run the terminal dashboard
+synaps-tui
+
+# Or directly
+python -m tui.dashboard
+```
+
+**Features:**
+- Real-time service health monitoring (Claude, Gemini, Codex, Gateway)
+- Metrics visualization (requests, success rate, latency)
+- Live logs viewer
+- Auto-refresh every 5 seconds
+- Keybindings: `q` quit, `r` refresh, `c` clear logs
+
 ### Test
 
 ```bash
@@ -118,7 +136,7 @@ curl -X POST http://localhost:8000/api/v1/claude/plan \
 ## Project Structure
 
 ```
-synapse/
+synaps/
 ├── .github/workflows/     # CI/CD pipelines
 │   ├── ci.yml            # Test, lint, build
 │   └── docker.yml        # Docker build & push
@@ -128,6 +146,9 @@ synapse/
 │   └── grpc_generated/    # Generated code
 ├── clients/               # gRPC clients
 ├── gateway/               # API Gateway
+├── tui/                   # Terminal UI Dashboard
+│   ├── __init__.py
+│   └── dashboard.py       # Textual-based TUI
 ├── tests/                 # 201 unit tests
 ├── monitoring/            # Prometheus & Grafana
 ├── docker-compose.yml
@@ -202,8 +223,9 @@ config = ResilienceConfig(
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | Prometheus | http://localhost:9090 | - |
-| Grafana | http://localhost:3000 | admin/synapse123 |
+| Grafana | http://localhost:3000 | admin/synaps123 |
 | Gateway | http://localhost:8000 | - |
+| TUI | `synaps-tui` | - |
 
 ## Performance
 

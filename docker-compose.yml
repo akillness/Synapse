@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: synapse-claude
+    container_name: synaps-claude
     command: ["python", "services/grpc_base_service.py", "claude"]
     ports:
       - "5011:5011"
@@ -13,7 +13,7 @@ services:
       - LOG_LEVEL=INFO
       - SERVICE_NAME=claude
     networks:
-      - synapse-network
+      - synaps-network
     healthcheck:
       test: ["CMD", "python", "-c", "import grpc; exit(0)"]
       interval: 30s
@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: synapse-gemini
+    container_name: synaps-gemini
     command: ["python", "services/grpc_base_service.py", "gemini"]
     ports:
       - "5012:5012"
@@ -33,7 +33,7 @@ services:
       - LOG_LEVEL=INFO
       - SERVICE_NAME=gemini
     networks:
-      - synapse-network
+      - synaps-network
     healthcheck:
       test: ["CMD", "python", "-c", "import grpc; exit(0)"]
       interval: 30s
@@ -45,7 +45,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: synapse-codex
+    container_name: synaps-codex
     command: ["python", "services/grpc_base_service.py", "codex"]
     ports:
       - "5013:5013"
@@ -53,7 +53,7 @@ services:
       - LOG_LEVEL=INFO
       - SERVICE_NAME=codex
     networks:
-      - synapse-network
+      - synaps-network
     healthcheck:
       test: ["CMD", "python", "-c", "import grpc; exit(0)"]
       interval: 30s
@@ -65,7 +65,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: synapse-gateway
+    container_name: synaps-gateway
     command: ["python", "-m", "uvicorn", "gateway.api_gateway:app", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
@@ -79,7 +79,7 @@ services:
       - gemini
       - codex
     networks:
-      - synapse-network
+      - synaps-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -89,7 +89,7 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
-    container_name: synapse-prometheus
+    container_name: synaps-prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -99,17 +99,17 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
     networks:
-      - synapse-network
+      - synaps-network
     restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
-    container_name: synapse-grafana
+    container_name: synaps-grafana
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=synapse123
+      - GF_SECURITY_ADMIN_PASSWORD=synaps123
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
@@ -117,11 +117,11 @@ services:
     depends_on:
       - prometheus
     networks:
-      - synapse-network
+      - synaps-network
     restart: unless-stopped
 
 networks:
-  synapse-network:
+  synaps-network:
     driver: bridge
 
 volumes:

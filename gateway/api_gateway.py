@@ -144,7 +144,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     application = FastAPI(
-        title="Synapse AI Agent Gateway",
+        title="Synaps AI Agent Gateway",
         description="Multi-Process AI Agent System API Gateway",
         version="1.0.0",
         lifespan=lifespan,
@@ -301,9 +301,7 @@ async def execute(request: ExecuteRequest):
         raise HTTPException(503, "Codex pool not available")
 
     async with pool.acquire() as client:
-        return await client.execute(
-            request.command, request.working_dir, request.timeout
-        )
+        return await client.execute(request.command, request.working_dir, request.timeout)
 
 
 @app.post("/api/v1/workflow")
@@ -323,27 +321,19 @@ async def run_workflow(request: PlanRequest):
 
     async with gemini_pool.acquire() as gemini:
         analysis = await gemini.analyze(request.task, "requirements")
-        results["steps"].append(
-            {"agent": "gemini", "action": "analyze", "result": analysis}
-        )
+        results["steps"].append({"agent": "gemini", "action": "analyze", "result": analysis})
 
     async with claude_pool.acquire() as claude:
         code = await claude.generate_code(request.task)
-        results["steps"].append(
-            {"agent": "claude", "action": "generate_code", "result": code}
-        )
+        results["steps"].append({"agent": "claude", "action": "generate_code", "result": code})
 
     async with gemini_pool.acquire() as gemini:
         review = await gemini.review_code(code["code"])
-        results["steps"].append(
-            {"agent": "gemini", "action": "review", "result": review}
-        )
+        results["steps"].append({"agent": "gemini", "action": "review", "result": review})
 
     async with codex_pool.acquire() as codex:
         exec_result = await codex.execute("echo 'Workflow completed!'")
-        results["steps"].append(
-            {"agent": "codex", "action": "execute", "result": exec_result}
-        )
+        results["steps"].append({"agent": "codex", "action": "execute", "result": exec_result})
 
     results["workflow_completed"] = True
     return results
