@@ -9,7 +9,6 @@ import sys
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Optional
 
 import grpc
 from grpc_health.v1 import health, health_pb2, health_pb2_grpc
@@ -35,8 +34,8 @@ class GrpcBaseService(ABC):
         self.max_workers = max_workers
 
         # 상태
-        self.server: Optional[grpc.aio.Server] = None
-        self.start_time: Optional[float] = None
+        self.server: grpc.aio.Server | None = None
+        self.start_time: float | None = None
         self._running = False
 
         # 헬스 체크
@@ -125,7 +124,7 @@ class GrpcBaseService(ABC):
 
     def _print_banner(self):
         """시작 배너 출력"""
-        uptime = int(time.time() - self.start_time) if self.start_time else 0
+        int(time.time() - self.start_time) if self.start_time else 0
         banner = f"""
 ╔══════════════════════════════════════════════════════════════════╗
 ║  gRPC Service: {self.name.upper():<49} ║
@@ -468,7 +467,7 @@ class CodexGrpcServicer(ai_agent_pb2_grpc.CodexServiceServicer):
                 executed_at=datetime.now().isoformat(),
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return ai_agent_pb2.ExecuteResponse(
                 success=False,
                 command=request.command,

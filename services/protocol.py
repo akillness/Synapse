@@ -1,12 +1,12 @@
 """
 JSON-RPC 2.0 프로토콜 구현
 """
-import struct
 import json
+import struct
 import uuid
-from dataclasses import dataclass, field, asdict
-from typing import Any, Dict, Optional, Union
+from dataclasses import asdict, dataclass, field
 from enum import IntEnum
+from typing import Any
 
 
 class ErrorCode(IntEnum):
@@ -26,18 +26,18 @@ class ErrorCode(IntEnum):
 class JsonRpcRequest:
     """JSON-RPC 2.0 요청"""
     method: str
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     jsonrpc: str = "2.0"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def to_bytes(self) -> bytes:
         return json.dumps(self.to_dict()).encode("utf-8")
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "JsonRpcRequest":
+    def from_dict(cls, data: dict[str, Any]) -> "JsonRpcRequest":
         return cls(
             method=data.get("method", ""),
             params=data.get("params", {}),
@@ -51,9 +51,9 @@ class JsonRpcError:
     """JSON-RPC 에러"""
     code: int
     message: str
-    data: Optional[Any] = None
+    data: Any | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {"code": self.code, "message": self.message}
         if self.data is not None:
             result["data"] = self.data
@@ -64,11 +64,11 @@ class JsonRpcError:
 class JsonRpcResponse:
     """JSON-RPC 2.0 응답"""
     id: str
-    result: Optional[Any] = None
-    error: Optional[JsonRpcError] = None
+    result: Any | None = None
+    error: JsonRpcError | None = None
     jsonrpc: str = "2.0"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         response = {"jsonrpc": self.jsonrpc, "id": self.id}
         if self.error:
             response["error"] = self.error.to_dict()
@@ -91,7 +91,7 @@ class JsonRpcResponse:
         return cls(id=id, error=JsonRpcError(code, message, data))
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "JsonRpcResponse":
+    def from_dict(cls, data: dict[str, Any]) -> "JsonRpcResponse":
         error = None
         if "error" in data:
             err_data = data["error"]
@@ -122,12 +122,9 @@ class MessageFramer:
     MAX_MESSAGE_SIZE = 10 * 1024 * 1024  # 10MB
 
     @staticmethod
-    def encode(data: Union[Dict, bytes]) -> bytes:
+    def encode(data: dict | bytes) -> bytes:
         """메시지 인코딩"""
-        if isinstance(data, dict):
-            payload = json.dumps(data).encode("utf-8")
-        else:
-            payload = data
+        payload = json.dumps(data).encode("utf-8") if isinstance(data, dict) else data
 
         if len(payload) > MessageFramer.MAX_MESSAGE_SIZE:
             raise ValueError(f"Message too large: {len(payload)} bytes")
@@ -143,6 +140,6 @@ class MessageFramer:
         return struct.unpack(">I", header)[0]
 
     @staticmethod
-    def decode_payload(payload: bytes) -> Dict[str, Any]:
+    def decode_payload(payload: bytes) -> dict[str, Any]:
         """페이로드 디코딩"""
         return json.loads(payload.decode("utf-8"))

@@ -12,9 +12,9 @@ gRPC 공식 Backoff 알고리즘 구현:
 import asyncio
 import logging
 import random
-import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Set
+from typing import Any
 
 import grpc
 from grpc import StatusCode
@@ -32,7 +32,7 @@ class RetryPolicy:
     backoff_multiplier: float = 2.0
     jitter: float = 0.2
 
-    retryable_status_codes: Set[StatusCode] = field(
+    retryable_status_codes: set[StatusCode] = field(
         default_factory=lambda: {
             StatusCode.UNAVAILABLE,
             StatusCode.DEADLINE_EXCEEDED,
@@ -53,8 +53,8 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
 
     def __init__(
         self,
-        policy: Optional[RetryPolicy] = None,
-        on_retry: Optional[Callable[[int, Exception, float], None]] = None,
+        policy: RetryPolicy | None = None,
+        on_retry: Callable[[int, Exception, float], None] | None = None,
     ):
         self.policy = policy or RetryPolicy()
         self.on_retry = on_retry
@@ -83,7 +83,7 @@ class RetryInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
     ) -> Any:
         """Unary-Unary 요청 인터셉트 및 재시도"""
 
-        last_exception: Optional[Exception] = None
+        last_exception: Exception | None = None
 
         for attempt in range(self.policy.max_attempts):
             try:
@@ -155,8 +155,8 @@ class RetryStreamInterceptor(grpc.aio.UnaryStreamClientInterceptor):
 
     def __init__(
         self,
-        policy: Optional[RetryPolicy] = None,
-        on_retry: Optional[Callable[[int, Exception, float], None]] = None,
+        policy: RetryPolicy | None = None,
+        on_retry: Callable[[int, Exception, float], None] | None = None,
     ):
         self.policy = policy or RetryPolicy()
         self.on_retry = on_retry
@@ -180,7 +180,7 @@ class RetryStreamInterceptor(grpc.aio.UnaryStreamClientInterceptor):
     ) -> Any:
         """Unary-Stream 요청 인터셉트 및 재시도"""
 
-        last_exception: Optional[Exception] = None
+        last_exception: Exception | None = None
 
         for attempt in range(self.policy.max_attempts):
             try:

@@ -11,9 +11,10 @@ Circuit Breaker 패턴:
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any
 
 import grpc
 from grpc import StatusCode
@@ -51,7 +52,7 @@ class CircuitBreakerConfig:
     half_open_max_calls: int = 3  # HALF_OPEN에서 허용할 최대 동시 요청
 
     # 실패로 카운트할 gRPC 상태 코드 (시스템 에러만)
-    failure_status_codes: Set[StatusCode] = field(
+    failure_status_codes: set[StatusCode] = field(
         default_factory=lambda: {
             StatusCode.UNAVAILABLE,
             StatusCode.DEADLINE_EXCEEDED,
@@ -76,7 +77,7 @@ class CircuitBreaker:
     def __init__(
         self,
         name: str,
-        config: Optional[CircuitBreakerConfig] = None,
+        config: CircuitBreakerConfig | None = None,
     ):
         self.name = name
         self.config = config or CircuitBreakerConfig()
@@ -85,7 +86,7 @@ class CircuitBreaker:
         self._state = CircuitBreakerState.CLOSED
         self._failure_count = 0
         self._success_count = 0
-        self._last_failure_time: Optional[float] = None
+        self._last_failure_time: float | None = None
         self._half_open_calls = 0
 
         # 동기화
@@ -102,9 +103,8 @@ class CircuitBreaker:
     @property
     def state(self) -> CircuitBreakerState:
         """현재 상태 반환 (자동 상태 전이 체크)"""
-        if self._state == CircuitBreakerState.OPEN:
-            if self._should_attempt_reset():
-                return CircuitBreakerState.HALF_OPEN
+        if self._state == CircuitBreakerState.OPEN and self._should_attempt_reset():
+            return CircuitBreakerState.HALF_OPEN
         return self._state
 
     def _should_attempt_reset(self) -> bool:
@@ -157,7 +157,7 @@ class CircuitBreaker:
                 if self._failure_count > 0:
                     self._failure_count -= 1
 
-    async def record_failure(self, status_code: Optional[StatusCode] = None):
+    async def record_failure(self, status_code: StatusCode | None = None):
         """실패 기록"""
         # 설정된 상태 코드만 실패로 카운트
         if status_code and status_code not in self.config.failure_status_codes:
@@ -200,10 +200,7 @@ class CircuitBreaker:
             self._failure_count = 0
             self._success_count = 0
             self._half_open_calls = 0
-        elif new_state == CircuitBreakerState.HALF_OPEN:
-            self._success_count = 0
-            self._half_open_calls = 0
-        elif new_state == CircuitBreakerState.OPEN:
+        elif new_state == CircuitBreakerState.HALF_OPEN or new_state == CircuitBreakerState.OPEN:
             self._success_count = 0
             self._half_open_calls = 0
 
@@ -220,7 +217,7 @@ class CircuitBreaker:
             f"CircuitBreaker '{self.name}' state: {old_state.value} → {new_state.value}"
         )
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """메트릭 반환"""
         return {
             "name": self.name,
@@ -257,7 +254,7 @@ class CircuitBreakerInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
     def __init__(
         self,
         circuit_breaker: CircuitBreaker,
-        fallback: Optional[Callable] = None,
+        fallback: Callable | None = None,
     ):
         self.circuit_breaker = circuit_breaker
         self.fallback = fallback
@@ -324,7 +321,7 @@ class CircuitBreakerStreamInterceptor(grpc.aio.UnaryStreamClientInterceptor):
     def __init__(
         self,
         circuit_breaker: CircuitBreaker,
-        fallback: Optional[Callable] = None,
+        fallback: Callable | None = None,
     ):
         self.circuit_breaker = circuit_breaker
         self.fallback = fallback

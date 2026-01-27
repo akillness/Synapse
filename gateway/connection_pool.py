@@ -1,9 +1,9 @@
 import asyncio
 import logging
 import time
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, TypeVar, Generic
-from contextlib import asynccontextmanager
+from typing import Generic, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class ConnectionPool(Generic[T]):
         self,
         name: str,
         factory,
-        config: Optional[PoolConfig] = None,
+        config: PoolConfig | None = None,
         health_checker=None,
     ):
         self.name = name
@@ -52,10 +52,10 @@ class ConnectionPool(Generic[T]):
         self._pool: asyncio.Queue[PooledConnection[T]] = asyncio.Queue(
             maxsize=self.config.max_size
         )
-        self._all_connections: List[PooledConnection[T]] = []
+        self._all_connections: list[PooledConnection[T]] = []
         self._lock = asyncio.Lock()
         self._closed = False
-        self._health_check_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
 
         self._total_acquired = 0
         self._total_released = 0
@@ -96,7 +96,7 @@ class ConnectionPool(Generic[T]):
         if self._closed:
             raise RuntimeError(f"Pool '{self.name}' is closed")
 
-        pooled: Optional[PooledConnection[T]] = None
+        pooled: PooledConnection[T] | None = None
 
         try:
             pooled = await asyncio.wait_for(
@@ -114,7 +114,7 @@ class ConnectionPool(Generic[T]):
 
             yield pooled.connection
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             async with self._lock:
                 if len(self._all_connections) < self.config.max_size:
                     pooled = await self._create_connection()
@@ -151,17 +151,15 @@ class ConnectionPool(Generic[T]):
 
         if self._health_check_task:
             self._health_check_task.cancel()
-            try:
+            with suppress(asyncio.CancelledError):
                 await self._health_check_task
-            except asyncio.CancelledError:
-                pass
 
         for pooled in self._all_connections[:]:
             await self._destroy_connection(pooled)
 
         logger.info(f"Pool '{self.name}' closed")
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         return {
             "name": self.name,
             "current_size": len(self._all_connections),
@@ -175,12 +173,12 @@ class ConnectionPool(Generic[T]):
 
 class MultiServicePool:
     def __init__(self):
-        self._pools: Dict[str, ConnectionPool] = {}
+        self._pools: dict[str, ConnectionPool] = {}
 
     def add_pool(self, name: str, pool: ConnectionPool):
         self._pools[name] = pool
 
-    def get_pool(self, name: str) -> Optional[ConnectionPool]:
+    def get_pool(self, name: str) -> ConnectionPool | None:
         return self._pools.get(name)
 
     async def initialize_all(self):
@@ -191,5 +189,5 @@ class MultiServicePool:
         for pool in self._pools.values():
             await pool.close()
 
-    def get_all_stats(self) -> Dict[str, Dict]:
+    def get_all_stats(self) -> dict[str, dict]:
         return {name: pool.get_stats() for name, pool in self._pools.items()}

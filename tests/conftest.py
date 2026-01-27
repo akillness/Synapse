@@ -4,15 +4,13 @@ Comprehensive Test Suite for Synaps AI Agent System
 """
 
 import asyncio
-import time
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 import grpc
+import pytest
 from grpc import StatusCode
-
 
 # ============================================================================
 # Async Event Loop Configuration
@@ -37,10 +35,10 @@ class MockClientCallDetails:
     """Mock gRPC client call details."""
 
     method: str = "/test.Service/Method"
-    timeout: Optional[float] = None
-    metadata: Optional[tuple] = None
-    credentials: Optional[Any] = None
-    wait_for_ready: Optional[bool] = None
+    timeout: float | None = None
+    metadata: tuple | None = None
+    credentials: Any | None = None
+    wait_for_ready: bool | None = None
 
 
 class MockAioRpcError(grpc.aio.AioRpcError):
@@ -115,7 +113,7 @@ def mock_failure_continuation():
 def mock_intermittent_continuation():
     """Continuation that fails intermittently."""
 
-    def _create(fail_indices: List[int], error_code: StatusCode = StatusCode.UNAVAILABLE):
+    def _create(fail_indices: list[int], error_code: StatusCode = StatusCode.UNAVAILABLE):
         call_count = 0
 
         async def continuation(call_details, request):
@@ -268,7 +266,7 @@ def checkpoint_manager():
 def mock_stream_factory():
     """Factory for creating mock async streams."""
 
-    def _create(messages: List[Any]):
+    def _create(messages: list[Any]):
         async def stream():
             for msg in messages:
                 yield msg

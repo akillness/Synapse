@@ -1,10 +1,11 @@
 import asyncio
+import contextlib
 import logging
 import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, TypeVar, Generic
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class ServiceEndpoint:
     failure_count: int = 0
     success_count: int = 0
     avg_response_time: float = 0.0
-    _response_times: List[float] = field(default_factory=list)
+    _response_times: list[float] = field(default_factory=list)
 
     @property
     def address(self) -> str:
@@ -43,7 +44,7 @@ class ServiceEndpoint:
 
 class LoadBalancerStrategy(ABC):
     @abstractmethod
-    def select(self, endpoints: List[ServiceEndpoint]) -> Optional[ServiceEndpoint]:
+    def select(self, endpoints: list[ServiceEndpoint]) -> ServiceEndpoint | None:
         pass
 
 
@@ -52,7 +53,7 @@ class RoundRobinStrategy(LoadBalancerStrategy):
         self._index = 0
         self._lock = asyncio.Lock()
 
-    def select(self, endpoints: List[ServiceEndpoint]) -> Optional[ServiceEndpoint]:
+    def select(self, endpoints: list[ServiceEndpoint]) -> ServiceEndpoint | None:
         healthy = [e for e in endpoints if e.healthy]
         if not healthy:
             return None
@@ -63,7 +64,7 @@ class RoundRobinStrategy(LoadBalancerStrategy):
 
 
 class WeightedStrategy(LoadBalancerStrategy):
-    def select(self, endpoints: List[ServiceEndpoint]) -> Optional[ServiceEndpoint]:
+    def select(self, endpoints: list[ServiceEndpoint]) -> ServiceEndpoint | None:
         healthy = [e for e in endpoints if e.healthy]
         if not healthy:
             return None
@@ -82,9 +83,9 @@ class WeightedStrategy(LoadBalancerStrategy):
 
 class LeastConnectionsStrategy(LoadBalancerStrategy):
     def __init__(self):
-        self._connections: Dict[str, int] = {}
+        self._connections: dict[str, int] = {}
 
-    def select(self, endpoints: List[ServiceEndpoint]) -> Optional[ServiceEndpoint]:
+    def select(self, endpoints: list[ServiceEndpoint]) -> ServiceEndpoint | None:
         healthy = [e for e in endpoints if e.healthy]
         if not healthy:
             return None
@@ -109,7 +110,7 @@ class LeastConnectionsStrategy(LoadBalancerStrategy):
 
 
 class LeastResponseTimeStrategy(LoadBalancerStrategy):
-    def select(self, endpoints: List[ServiceEndpoint]) -> Optional[ServiceEndpoint]:
+    def select(self, endpoints: list[ServiceEndpoint]) -> ServiceEndpoint | None:
         healthy = [e for e in endpoints if e.healthy]
         if not healthy:
             return None
@@ -126,16 +127,16 @@ class LoadBalancer:
     def __init__(
         self,
         service_name: str,
-        strategy: Optional[LoadBalancerStrategy] = None,
+        strategy: LoadBalancerStrategy | None = None,
         health_check_interval: float = 30.0,
     ):
         self.service_name = service_name
         self.strategy = strategy or RoundRobinStrategy()
         self.health_check_interval = health_check_interval
 
-        self._endpoints: List[ServiceEndpoint] = []
+        self._endpoints: list[ServiceEndpoint] = []
         self._health_checker = None
-        self._health_check_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
         self._lock = asyncio.Lock()
 
     def add_endpoint(self, host: str, port: int, weight: int = 1):
@@ -158,10 +159,8 @@ class LoadBalancer:
     async def stop(self):
         if self._health_check_task:
             self._health_check_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._health_check_task
-            except asyncio.CancelledError:
-                pass
 
     async def _health_check_loop(self):
         while True:
@@ -178,7 +177,7 @@ class LoadBalancer:
                     endpoint.healthy = False
                     endpoint.failure_count += 1
 
-    def get_endpoint(self) -> Optional[ServiceEndpoint]:
+    def get_endpoint(self) -> ServiceEndpoint | None:
         return self.strategy.select(self._endpoints)
 
     def record_success(self, endpoint: ServiceEndpoint, response_time: float):
@@ -187,7 +186,7 @@ class LoadBalancer:
     def record_failure(self, endpoint: ServiceEndpoint):
         endpoint.record_failure()
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         return {
             "service": self.service_name,
             "total_endpoints": len(self._endpoints),
@@ -208,12 +207,12 @@ class LoadBalancer:
 
 class MultiServiceLoadBalancer:
     def __init__(self):
-        self._balancers: Dict[str, LoadBalancer] = {}
+        self._balancers: dict[str, LoadBalancer] = {}
 
     def add_service(self, name: str, balancer: LoadBalancer):
         self._balancers[name] = balancer
 
-    def get_balancer(self, name: str) -> Optional[LoadBalancer]:
+    def get_balancer(self, name: str) -> LoadBalancer | None:
         return self._balancers.get(name)
 
     async def start_all(self):
@@ -224,5 +223,5 @@ class MultiServiceLoadBalancer:
         for balancer in self._balancers.values():
             await balancer.stop()
 
-    def get_all_stats(self) -> Dict[str, Dict]:
+    def get_all_stats(self) -> dict[str, dict]:
         return {name: b.get_stats() for name, b in self._balancers.items()}

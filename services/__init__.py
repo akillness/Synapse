@@ -1,12 +1,12 @@
 from .base_service import BaseService, ServiceProtocol
 from .claude_service import ClaudeService
-from .gemini_service import GeminiService
 from .codex_service import CodexService
+from .gemini_service import GeminiService
 from .grpc_base_service import (
-    GrpcBaseService,
     ClaudeGrpcService,
-    GeminiGrpcService,
     CodexGrpcService,
+    GeminiGrpcService,
+    GrpcBaseService,
 )
 
 __all__ = [

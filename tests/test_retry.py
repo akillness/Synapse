@@ -1,10 +1,8 @@
-import asyncio
-import pytest
-from grpc import StatusCode
-from unittest.mock import MagicMock
-
 import sys
 from pathlib import Path
+
+import pytest
+from grpc import StatusCode
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

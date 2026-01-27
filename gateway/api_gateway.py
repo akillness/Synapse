@@ -1,29 +1,25 @@
-import asyncio
 import logging
+import sys
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
-
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
-
-import sys
 from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from clients.resilient_client import (
     ResilientClaudeClient,
-    ResilientGeminiClient,
     ResilientCodexClient,
+    ResilientGeminiClient,
 )
-from gateway.connection_pool import ConnectionPool, PoolConfig, MultiServicePool
+from gateway.connection_pool import ConnectionPool, MultiServicePool, PoolConfig
 from gateway.load_balancer import (
     LoadBalancer,
-    RoundRobinStrategy,
     MultiServiceLoadBalancer,
+    RoundRobinStrategy,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class PlanRequest(BaseModel):
     task: str
-    constraints: Optional[List[str]] = None
+    constraints: list[str] | None = None
 
 
 class CodeRequest(BaseModel):
@@ -51,12 +47,12 @@ class ReviewRequest(BaseModel):
 
 class ExecuteRequest(BaseModel):
     command: str
-    working_dir: Optional[str] = None
+    working_dir: str | None = None
     timeout: int = 30
 
 
-pools: Optional[MultiServicePool] = None
-load_balancers: Optional[MultiServiceLoadBalancer] = None
+pools: MultiServicePool | None = None
+load_balancers: MultiServiceLoadBalancer | None = None
 
 
 async def create_claude_client():

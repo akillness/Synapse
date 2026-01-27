@@ -7,7 +7,6 @@ import argparse
 import asyncio
 import logging
 import multiprocessing
-import signal
 import sys
 import time
 from pathlib import Path
@@ -15,12 +14,13 @@ from pathlib import Path
 # 경로 설정
 sys.path.insert(0, str(Path(__file__).parent))
 
+import contextlib
+
 from services.grpc_base_service import (
     ClaudeGrpcService,
-    GeminiGrpcService,
     CodexGrpcService,
+    GeminiGrpcService,
 )
-
 
 # 로깅 설정
 logging.basicConfig(
@@ -33,10 +33,8 @@ logger = logging.getLogger("grpc.launcher")
 def run_service(service_class, **kwargs):
     """서비스 프로세스 실행"""
     service = service_class(**kwargs)
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(service.start())
-    except KeyboardInterrupt:
-        pass
 
 
 def main():

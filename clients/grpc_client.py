@@ -2,18 +2,18 @@
 gRPC 클라이언트
 asyncio 기반 고성능 클라이언트
 """
-import asyncio
 import logging
 import sys
-import time
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Dict, Optional
-
-import grpc
 
 # 경로 설정
 from pathlib import Path
+from typing import Any
+
+import grpc
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.grpc_generated import ai_agent_pb2, ai_agent_pb2_grpc
@@ -33,7 +33,7 @@ class GrpcBaseClient:
 
     def __init__(self, config: GrpcConnectionConfig):
         self.config = config
-        self.channel: Optional[grpc.aio.Channel] = None
+        self.channel: grpc.aio.Channel | None = None
         self._connected = False
 
         # 로깅
@@ -97,7 +97,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
 
     def __init__(self, host: str = "127.0.0.1", port: int = 5011):
         super().__init__(GrpcConnectionConfig(host=host, port=port))
-        self._stub: Optional[ai_agent_pb2_grpc.ClaudeServiceStub] = None
+        self._stub: ai_agent_pb2_grpc.ClaudeServiceStub | None = None
 
     @property
     def stub(self) -> ai_agent_pb2_grpc.ClaudeServiceStub:
@@ -105,7 +105,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
             self._stub = ai_agent_pb2_grpc.ClaudeServiceStub(self.channel)
         return self._stub
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """헬스 체크"""
         request = ai_agent_pb2.HealthCheckRequest(service="claude")
         response = await self.stub.HealthCheck(
@@ -121,7 +121,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
         self,
         task: str,
         constraints: list = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """계획 수립"""
         request = ai_agent_pb2.PlanRequest(
             task_description=task,
@@ -151,7 +151,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
         self,
         description: str,
         language: str = "python",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """코드 생성"""
         request = ai_agent_pb2.GenerateCodeRequest(
             description=description,
@@ -170,7 +170,7 @@ class ClaudeGrpcClient(GrpcBaseClient):
     async def stream_plan(
         self,
         task: str,
-    ) -> AsyncIterator[Dict[str, Any]]:
+    ) -> AsyncIterator[dict[str, Any]]:
         """스트리밍 계획 수립"""
         request = ai_agent_pb2.PlanRequest(task_description=task)
 
@@ -189,7 +189,7 @@ class GeminiGrpcClient(GrpcBaseClient):
 
     def __init__(self, host: str = "127.0.0.1", port: int = 5012):
         super().__init__(GrpcConnectionConfig(host=host, port=port))
-        self._stub: Optional[ai_agent_pb2_grpc.GeminiServiceStub] = None
+        self._stub: ai_agent_pb2_grpc.GeminiServiceStub | None = None
 
     @property
     def stub(self) -> ai_agent_pb2_grpc.GeminiServiceStub:
@@ -197,7 +197,7 @@ class GeminiGrpcClient(GrpcBaseClient):
             self._stub = ai_agent_pb2_grpc.GeminiServiceStub(self.channel)
         return self._stub
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """헬스 체크"""
         request = ai_agent_pb2.HealthCheckRequest(service="gemini")
         response = await self.stub.HealthCheck(
@@ -213,7 +213,7 @@ class GeminiGrpcClient(GrpcBaseClient):
         self,
         content: str,
         analysis_type: str = "general",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """분석"""
         request = ai_agent_pb2.AnalyzeRequest(
             content=content,
@@ -242,7 +242,7 @@ class GeminiGrpcClient(GrpcBaseClient):
         self,
         code: str,
         language: str = "python",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """코드 리뷰"""
         request = ai_agent_pb2.ReviewCodeRequest(
             code=code,
@@ -275,7 +275,7 @@ class CodexGrpcClient(GrpcBaseClient):
 
     def __init__(self, host: str = "127.0.0.1", port: int = 5013):
         super().__init__(GrpcConnectionConfig(host=host, port=port))
-        self._stub: Optional[ai_agent_pb2_grpc.CodexServiceStub] = None
+        self._stub: ai_agent_pb2_grpc.CodexServiceStub | None = None
 
     @property
     def stub(self) -> ai_agent_pb2_grpc.CodexServiceStub:
@@ -283,7 +283,7 @@ class CodexGrpcClient(GrpcBaseClient):
             self._stub = ai_agent_pb2_grpc.CodexServiceStub(self.channel)
         return self._stub
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """헬스 체크"""
         request = ai_agent_pb2.HealthCheckRequest(service="codex")
         response = await self.stub.HealthCheck(
@@ -300,7 +300,7 @@ class CodexGrpcClient(GrpcBaseClient):
         command: str,
         working_dir: str = None,
         timeout: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """명령 실행"""
         import os
         request = ai_agent_pb2.ExecuteRequest(
@@ -325,7 +325,7 @@ class CodexGrpcClient(GrpcBaseClient):
         self,
         command: str,
         working_dir: str = None,
-    ) -> AsyncIterator[Dict[str, Any]]:
+    ) -> AsyncIterator[dict[str, Any]]:
         """스트리밍 실행"""
         import os
         request = ai_agent_pb2.ExecuteRequest(

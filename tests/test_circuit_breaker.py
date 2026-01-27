@@ -1,19 +1,18 @@
 import asyncio
-import time
-import pytest
-from grpc import StatusCode
-
 import sys
 from pathlib import Path
+
+import pytest
+from grpc import StatusCode
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.interceptors.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
-    CircuitBreakerState,
-    CircuitBreakerOpenError,
     CircuitBreakerInterceptor,
+    CircuitBreakerOpenError,
+    CircuitBreakerState,
 )
 
 
@@ -255,7 +254,7 @@ class TestCircuitBreakerConfiguration:
         config = CircuitBreakerConfig(failure_threshold=5)
         cb = CircuitBreaker("test", config)
 
-        for i in range(4):
+        for _i in range(4):
             await cb.record_failure(StatusCode.UNAVAILABLE)
             assert cb.state == CircuitBreakerState.CLOSED
 

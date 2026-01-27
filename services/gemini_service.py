@@ -4,7 +4,7 @@ Gemini 서비스 - Analyst 역할
 """
 import asyncio
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from .base_service import BaseService
 
@@ -29,11 +29,11 @@ class GeminiService(BaseService):
         self.register_handler("research", self._handle_research)
         self.register_handler("review_code", self._handle_review_code)
 
-    async def process(self, params: Dict[str, Any]) -> Any:
+    async def process(self, params: dict[str, Any]) -> Any:
         """범용 처리"""
         return await self._handle_process(params)
 
-    async def _handle_process(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_process(self, params: dict[str, Any]) -> dict[str, Any]:
         """범용 처리 핸들러"""
         task = params.get("task", "")
         content = params.get("content", "")
@@ -45,11 +45,11 @@ class GeminiService(BaseService):
             "agent": "gemini",
         }
 
-    async def _handle_analyze(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_analyze(self, params: dict[str, Any]) -> dict[str, Any]:
         """대용량 분석 핸들러"""
         content = params.get("content", "")
         analysis_type = params.get("type", "general")
-        max_tokens = params.get("max_tokens", 100000)
+        params.get("max_tokens", 100000)
 
         # 분석 시뮬레이션
         findings = self._perform_analysis(content, analysis_type)
@@ -65,7 +65,7 @@ class GeminiService(BaseService):
 
     def _perform_analysis(
         self, content: str, analysis_type: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """분석 수행"""
         findings = []
 
@@ -112,7 +112,7 @@ class GeminiService(BaseService):
 
         return findings
 
-    async def _handle_research(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_research(self, params: dict[str, Any]) -> dict[str, Any]:
         """리서치 핸들러"""
         query = params.get("query", "")
         sources = params.get("sources", [])
@@ -130,8 +130,8 @@ class GeminiService(BaseService):
         }
 
     def _conduct_research(
-        self, query: str, sources: List[str], depth: str
-    ) -> List[Dict[str, Any]]:
+        self, query: str, sources: list[str], depth: str
+    ) -> list[dict[str, Any]]:
         """리서치 수행"""
         return [
             {
@@ -148,7 +148,7 @@ class GeminiService(BaseService):
             },
         ]
 
-    async def _handle_review_code(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_review_code(self, params: dict[str, Any]) -> dict[str, Any]:
         """코드 리뷰 핸들러"""
         code = params.get("code", "")
         language = params.get("language", "python")
@@ -168,7 +168,7 @@ class GeminiService(BaseService):
 
     def _review_code(
         self, code: str, language: str, review_type: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """코드 리뷰 수행"""
         issues = []
 
@@ -192,7 +192,7 @@ class GeminiService(BaseService):
 
         return issues
 
-    def _calculate_score(self, issues: List[Dict]) -> float:
+    def _calculate_score(self, issues: list[dict]) -> float:
         """리뷰 점수 계산"""
         if not issues:
             return 100.0

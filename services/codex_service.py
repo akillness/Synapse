@@ -4,9 +4,8 @@ Codex 서비스 - Executor 역할
 """
 import asyncio
 import os
-import subprocess
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .base_service import BaseService
 
@@ -55,11 +54,11 @@ class CodexService(BaseService):
         self.register_handler("test", self._handle_test)
         self.register_handler("deploy", self._handle_deploy)
 
-    async def process(self, params: Dict[str, Any]) -> Any:
+    async def process(self, params: dict[str, Any]) -> Any:
         """범용 처리"""
         return await self._handle_process(params)
 
-    async def _handle_process(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_process(self, params: dict[str, Any]) -> dict[str, Any]:
         """범용 처리 핸들러"""
         task = params.get("task", "")
 
@@ -70,7 +69,7 @@ class CodexService(BaseService):
             "sandbox_mode": self.sandbox_mode,
         }
 
-    async def _handle_execute(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_execute(self, params: dict[str, Any]) -> dict[str, Any]:
         """명령 실행 핸들러"""
         command = params.get("command", "")
         working_dir = params.get("working_dir", os.getcwd())
@@ -99,7 +98,7 @@ class CodexService(BaseService):
             "executed_at": datetime.now().isoformat(),
         }
 
-    def _validate_command(self, command: str) -> Dict[str, Any]:
+    def _validate_command(self, command: str) -> dict[str, Any]:
         """명령어 유효성 검증"""
         if not command:
             return {"allowed": False, "reason": "Empty command"}
@@ -149,8 +148,8 @@ class CodexService(BaseService):
         command: str,
         working_dir: str,
         timeout: int,
-        env: Dict[str, str],
-    ) -> Dict[str, Any]:
+        env: dict[str, str],
+    ) -> dict[str, Any]:
         """명령 실행"""
         import time
 
@@ -177,7 +176,7 @@ class CodexService(BaseService):
                 )
                 exit_code = process.returncode
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.wait()
                 return {
@@ -204,7 +203,7 @@ class CodexService(BaseService):
                 "duration": time.perf_counter() - start_time,
             }
 
-    async def _handle_build(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_build(self, params: dict[str, Any]) -> dict[str, Any]:
         """빌드 핸들러"""
         project_dir = params.get("project_dir", os.getcwd())
         build_command = params.get("build_command", "make build")
@@ -224,14 +223,14 @@ class CodexService(BaseService):
             "built_at": datetime.now().isoformat(),
         }
 
-    async def _handle_test(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_test(self, params: dict[str, Any]) -> dict[str, Any]:
         """테스트 실행 핸들러"""
         project_dir = params.get("project_dir", os.getcwd())
         test_command = params.get("test_command", "pytest -v")
         coverage = params.get("coverage", False)
 
         if coverage:
-            test_command = f"pytest --cov=. --cov-report=term-missing -v"
+            test_command = "pytest --cov=. --cov-report=term-missing -v"
 
         # 테스트 실행
         result = await self._run_command(test_command, project_dir, 600, {})
@@ -251,7 +250,7 @@ class CodexService(BaseService):
             "tested_at": datetime.now().isoformat(),
         }
 
-    def _parse_test_output(self, output: str) -> Dict[str, Any]:
+    def _parse_test_output(self, output: str) -> dict[str, Any]:
         """테스트 출력 파싱"""
         # 간단한 파싱 (실제로는 더 정교한 파싱 필요)
         return {
@@ -260,10 +259,10 @@ class CodexService(BaseService):
             "skipped": output.count("SKIPPED") if "SKIPPED" in output else 0,
         }
 
-    async def _handle_deploy(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_deploy(self, params: dict[str, Any]) -> dict[str, Any]:
         """배포 핸들러"""
         target = params.get("target", "local")
-        config = params.get("config", {})
+        params.get("config", {})
         dry_run = params.get("dry_run", True)
 
         # 배포 시뮬레이션 (실제로는 더 복잡한 로직)

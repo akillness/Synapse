@@ -12,7 +12,7 @@ from rich.text import Text
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Container
 from textual.widgets import DataTable, Footer, Header, Log, Static
 
 
@@ -142,37 +142,37 @@ class SynapsDashboard(App):
         grid-gutter: 1;
         padding: 1;
     }
-    
+
     .panel {
         border: solid green;
         padding: 1;
     }
-    
+
     .panel-title {
         text-style: bold;
         color: $accent;
         padding-bottom: 1;
     }
-    
+
     #health-panel {
         column-span: 1;
         row-span: 1;
     }
-    
+
     #metrics-panel {
         column-span: 1;
         row-span: 1;
     }
-    
+
     #log-panel {
         column-span: 2;
         row-span: 1;
     }
-    
+
     DataTable {
         height: auto;
     }
-    
+
     Log {
         height: 100%;
     }

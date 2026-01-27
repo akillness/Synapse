@@ -12,8 +12,9 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Generic, Optional, TypeVar
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, Generic, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,9 @@ class FallbackConfig:
 class FallbackCache:
     """응답 캐시 관리자"""
 
-    def __init__(self, config: Optional[FallbackConfig] = None):
+    def __init__(self, config: FallbackConfig | None = None):
         self.config = config or FallbackConfig()
-        self._cache: Dict[str, CacheEntry] = {}
+        self._cache: dict[str, CacheEntry] = {}
         self._lock = asyncio.Lock()
 
     def _make_key(self, method: str, request: Any) -> str:
@@ -56,7 +57,7 @@ class FallbackCache:
         request_str = str(request) if request else ""
         return f"{method}:{hash(request_str)}"
 
-    async def get(self, method: str, request: Any) -> Optional[Any]:
+    async def get(self, method: str, request: Any) -> Any | None:
         """캐시 조회"""
         if not self.config.cache_enabled:
             return None
@@ -81,7 +82,7 @@ class FallbackCache:
         method: str,
         request: Any,
         response: Any,
-        ttl: Optional[float] = None,
+        ttl: float | None = None,
     ):
         """캐시 저장"""
         if not self.config.cache_enabled:
@@ -113,7 +114,7 @@ class FallbackCache:
         async with self._lock:
             self._cache.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """캐시 통계"""
         return {
             "size": len(self._cache),
@@ -126,7 +127,7 @@ class FallbackHandler(ABC):
     """폴백 핸들러 베이스 클래스"""
 
     @abstractmethod
-    async def handle(self, method: str, request: Any) -> Optional[Any]:
+    async def handle(self, method: str, request: Any) -> Any | None:
         """폴백 응답 생성"""
         pass
 
@@ -135,13 +136,13 @@ class RuleBasedFallback(FallbackHandler):
     """Rule-based 폴백 핸들러"""
 
     def __init__(self):
-        self._rules: Dict[str, Callable[[Any], Any]] = {}
+        self._rules: dict[str, Callable[[Any], Any]] = {}
 
     def register_rule(self, method_pattern: str, handler: Callable[[Any], Any]):
         """폴백 규칙 등록"""
         self._rules[method_pattern] = handler
 
-    async def handle(self, method: str, request: Any) -> Optional[Any]:
+    async def handle(self, method: str, request: Any) -> Any | None:
         """규칙 기반 폴백 응답"""
         method_name = method.split("/")[-1] if "/" in method else method
 
@@ -162,11 +163,11 @@ class RuleBasedFallback(FallbackHandler):
 class FallbackManager:
     """통합 폴백 관리자"""
 
-    def __init__(self, config: Optional[FallbackConfig] = None):
+    def __init__(self, config: FallbackConfig | None = None):
         self.config = config or FallbackConfig()
         self.cache = FallbackCache(self.config)
         self.rule_handler = RuleBasedFallback()
-        self._custom_handlers: Dict[str, FallbackHandler] = {}
+        self._custom_handlers: dict[str, FallbackHandler] = {}
 
     def register_handler(self, service_name: str, handler: FallbackHandler):
         """서비스별 커스텀 핸들러 등록"""
@@ -181,7 +182,7 @@ class FallbackManager:
         service_name: str,
         method: str,
         request: Any,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """폴백 응답 조회"""
         cached = await self.cache.get(method, request)
         if cached is not None:
@@ -204,7 +205,7 @@ class FallbackManager:
         method: str,
         request: Any,
         response: Any,
-        ttl: Optional[float] = None,
+        ttl: float | None = None,
     ):
         """성공 응답 캐싱"""
         await self.cache.set(method, request, response, ttl)
@@ -213,7 +214,7 @@ class FallbackManager:
 class ClaudeFallbackHandler(FallbackHandler):
     """Claude 서비스 전용 폴백"""
 
-    async def handle(self, method: str, request: Any) -> Optional[Any]:
+    async def handle(self, method: str, request: Any) -> Any | None:
         method_name = method.split("/")[-1] if "/" in method else method
 
         if method_name == "HealthCheck":
@@ -239,7 +240,7 @@ class ClaudeFallbackHandler(FallbackHandler):
 class GeminiFallbackHandler(FallbackHandler):
     """Gemini 서비스 전용 폴백"""
 
-    async def handle(self, method: str, request: Any) -> Optional[Any]:
+    async def handle(self, method: str, request: Any) -> Any | None:
         method_name = method.split("/")[-1] if "/" in method else method
 
         if method_name == "HealthCheck":
@@ -261,7 +262,7 @@ class GeminiFallbackHandler(FallbackHandler):
 class CodexFallbackHandler(FallbackHandler):
     """Codex 서비스 전용 폴백"""
 
-    async def handle(self, method: str, request: Any) -> Optional[Any]:
+    async def handle(self, method: str, request: Any) -> Any | None:
         method_name = method.split("/")[-1] if "/" in method else method
 
         if method_name == "HealthCheck":

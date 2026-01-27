@@ -1,15 +1,14 @@
-import asyncio
-import pytest
-
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.interceptors.adaptive_timeout import (
+    AdaptiveTimeoutInterceptor,
     TimeoutConfig,
     TimeoutManager,
-    AdaptiveTimeoutInterceptor,
 )
 
 
@@ -74,7 +73,7 @@ class TestTimeoutManager:
 
     @pytest.mark.asyncio
     async def test_returns_base_timeout_with_insufficient_history(self, timeout_manager):
-        for i in range(5):
+        for _i in range(5):
             await timeout_manager.record_response_time("TestMethod", 1.0)
 
         timeout = await timeout_manager.get_timeout("TestMethod")
@@ -86,7 +85,7 @@ class TestTimeoutManager:
         config = TimeoutConfig(adaptive_enabled=False, default_timeout=10.0)
         manager = TimeoutManager(config)
 
-        for i in range(20):
+        for _i in range(20):
             await manager.record_response_time("TestMethod", 100.0)
 
         timeout = await manager.get_timeout("TestMethod")
@@ -212,7 +211,7 @@ class TestAdaptiveTimeoutBounds:
         )
         manager = TimeoutManager(config)
 
-        for i in range(15):
+        for _i in range(15):
             await manager.record_response_time("FastMethod", 0.1)
 
         timeout = await manager.get_timeout("FastMethod")
@@ -229,7 +228,7 @@ class TestAdaptiveTimeoutBounds:
         )
         manager = TimeoutManager(config)
 
-        for i in range(15):
+        for _i in range(15):
             await manager.record_response_time("SlowMethod", 100.0)
 
         timeout = await manager.get_timeout("SlowMethod")

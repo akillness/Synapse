@@ -4,7 +4,7 @@ Claude 서비스 - Orchestrator 역할
 """
 import asyncio
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from .base_service import BaseService
 
@@ -29,11 +29,11 @@ class ClaudeService(BaseService):
         self.register_handler("generate_code", self._handle_generate_code)
         self.register_handler("orchestrate", self._handle_orchestrate)
 
-    async def process(self, params: Dict[str, Any]) -> Any:
+    async def process(self, params: dict[str, Any]) -> Any:
         """범용 처리"""
         return await self._handle_process(params)
 
-    async def _handle_process(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_process(self, params: dict[str, Any]) -> dict[str, Any]:
         """범용 처리 핸들러"""
         task = params.get("task", "")
         content = params.get("content", "")
@@ -49,7 +49,7 @@ class ClaudeService(BaseService):
             "agent": "claude",
         }
 
-    async def _handle_plan(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_plan(self, params: dict[str, Any]) -> dict[str, Any]:
         """계획 수립 핸들러"""
         task = params.get("task", "")
         constraints = params.get("constraints", [])
@@ -65,7 +65,7 @@ class ClaudeService(BaseService):
             "created_at": datetime.now().isoformat(),
         }
 
-    def _create_plan(self, task: str, constraints: List[str]) -> List[Dict[str, Any]]:
+    def _create_plan(self, task: str, constraints: list[str]) -> list[dict[str, Any]]:
         """계획 생성"""
         # 기본 워크플로우 계획
         return [
@@ -106,18 +106,18 @@ class ClaudeService(BaseService):
             },
         ]
 
-    def _extract_agents(self, steps: List[Dict]) -> List[str]:
+    def _extract_agents(self, steps: list[dict]) -> list[str]:
         """계획에서 사용되는 에이전트 목록 추출"""
         agents = set()
         for step in steps:
             agents.add(step.get("agent", ""))
-        return sorted(list(agents))
+        return sorted(agents)
 
-    async def _handle_generate_code(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_generate_code(self, params: dict[str, Any]) -> dict[str, Any]:
         """코드 생성 핸들러"""
         language = params.get("language", "python")
         description = params.get("description", "")
-        context = params.get("context", "")
+        params.get("context", "")
 
         # 코드 생성 시뮬레이션
         code = self._generate_sample_code(language, description)
@@ -146,10 +146,10 @@ if __name__ == "__main__":
 '''
         return f"// {description}\n// Language: {language}"
 
-    async def _handle_orchestrate(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_orchestrate(self, params: dict[str, Any]) -> dict[str, Any]:
         """오케스트레이션 핸들러 (다른 에이전트 조율)"""
         workflow = params.get("workflow", [])
-        context = params.get("context", {})
+        params.get("context", {})
 
         results = []
         for step in workflow:

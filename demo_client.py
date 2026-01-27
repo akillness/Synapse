@@ -11,7 +11,7 @@ from pathlib import Path
 # 경로 설정
 sys.path.insert(0, str(Path(__file__).parent))
 
-from clients.tcp_client import ClaudeClient, GeminiClient, CodexClient
+from clients.tcp_client import ClaudeClient, CodexClient, GeminiClient
 
 
 def print_result(title: str, result: dict):

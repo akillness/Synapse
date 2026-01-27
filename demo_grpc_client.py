@@ -13,8 +13,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from clients.grpc_client import (
     ClaudeGrpcClient,
-    GeminiGrpcClient,
     CodexGrpcClient,
+    GeminiGrpcClient,
 )
 
 
@@ -226,14 +226,14 @@ async def compare_tcp_vs_grpc():
 
         await tcp_client.disconnect()
 
-        print(f"\n  TCP (JSON-RPC):")
+        print("\n  TCP (JSON-RPC):")
         print(f"    Average: {sum(tcp_times)/len(tcp_times):.2f}ms")
         print(f"    Min: {min(tcp_times):.2f}ms")
         print(f"    Max: {max(tcp_times):.2f}ms")
     except Exception as e:
         print(f"\n  TCP: Not available ({e})")
 
-    print(f"\n  gRPC (Protobuf):")
+    print("\n  gRPC (Protobuf):")
     print(f"    Average: {sum(grpc_times)/len(grpc_times):.2f}ms")
     print(f"    Min: {min(grpc_times):.2f}ms")
     print(f"    Max: {max(grpc_times):.2f}ms")

@@ -7,7 +7,6 @@ import argparse
 import asyncio
 import logging
 import multiprocessing
-import signal
 import sys
 import time
 from pathlib import Path
@@ -15,10 +14,11 @@ from pathlib import Path
 # 경로 설정
 sys.path.insert(0, str(Path(__file__).parent))
 
-from services.claude_service import ClaudeService
-from services.gemini_service import GeminiService
-from services.codex_service import CodexService
+import contextlib
 
+from services.claude_service import ClaudeService
+from services.codex_service import CodexService
+from services.gemini_service import GeminiService
 
 # 로깅 설정
 logging.basicConfig(
@@ -32,10 +32,8 @@ def run_service(service_class, **kwargs):
     """서비스 프로세스 실행 함수"""
     # 각 프로세스에서 새 이벤트 루프 생성
     service = service_class(**kwargs)
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(service.start())
-    except KeyboardInterrupt:
-        pass
 
 
 def main():

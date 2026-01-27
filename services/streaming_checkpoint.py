@@ -11,8 +11,9 @@ Phase 3: Resilience
 import asyncio
 import logging
 import time
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class StreamCheckpoint:
     last_content: str
     progress_percent: float
     timestamp: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -35,13 +36,13 @@ class StreamState:
 
     stream_id: str
     started_at: float
-    checkpoints: List[StreamCheckpoint] = field(default_factory=list)
+    checkpoints: list[StreamCheckpoint] = field(default_factory=list)
     completed: bool = False
-    error: Optional[str] = None
+    error: str | None = None
     total_messages: int = 0
 
     @property
-    def last_checkpoint(self) -> Optional[StreamCheckpoint]:
+    def last_checkpoint(self) -> StreamCheckpoint | None:
         return self.checkpoints[-1] if self.checkpoints else None
 
     @property
@@ -62,7 +63,7 @@ class StreamCheckpointManager:
         self.max_streams = max_streams
         self.ttl = ttl
 
-        self._streams: Dict[str, StreamState] = {}
+        self._streams: dict[str, StreamState] = {}
         self._lock = asyncio.Lock()
 
     async def start_stream(self, stream_id: str) -> StreamState:
@@ -88,8 +89,8 @@ class StreamCheckpointManager:
         sequence: int,
         content: str,
         progress_percent: float,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Optional[StreamCheckpoint]:
+        metadata: dict[str, Any] | None = None,
+    ) -> StreamCheckpoint | None:
         """체크포인트 저장"""
         async with self._lock:
             state = self._streams.get(stream_id)
@@ -117,7 +118,7 @@ class StreamCheckpointManager:
 
             return None
 
-    async def get_resume_point(self, stream_id: str) -> Optional[StreamCheckpoint]:
+    async def get_resume_point(self, stream_id: str) -> StreamCheckpoint | None:
         """재개 지점 조회"""
         async with self._lock:
             state = self._streams.get(stream_id)
@@ -141,7 +142,7 @@ class StreamCheckpointManager:
                 state.error = error
                 logger.warning(f"Stream failed: {stream_id} - {error}")
 
-    async def get_state(self, stream_id: str) -> Optional[StreamState]:
+    async def get_state(self, stream_id: str) -> StreamState | None:
         """스트림 상태 조회"""
         async with self._lock:
             return self._streams.get(stream_id)
@@ -165,7 +166,7 @@ class StreamCheckpointManager:
         oldest = min(self._streams.keys(), key=lambda k: self._streams[k].started_at)
         del self._streams[oldest]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """통계"""
         active = sum(1 for s in self._streams.values() if not s.completed)
         completed = sum(1 for s in self._streams.values() if s.completed)
@@ -187,7 +188,7 @@ class ResumableStreamWrapper:
         stream_id: str,
         checkpoint_manager: StreamCheckpointManager,
         stream_factory: Callable[[], AsyncIterator[Any]],
-        resume_factory: Optional[Callable[[int], AsyncIterator[Any]]] = None,
+        resume_factory: Callable[[int], AsyncIterator[Any]] | None = None,
     ):
         self.stream_id = stream_id
         self.checkpoint_manager = checkpoint_manager
@@ -195,7 +196,7 @@ class ResumableStreamWrapper:
         self.resume_factory = resume_factory
 
         self._sequence = 0
-        self._state: Optional[StreamState] = None
+        self._state: StreamState | None = None
 
     async def __aiter__(self) -> AsyncIterator[Any]:
         """이터레이터"""
@@ -239,8 +240,8 @@ class ResumableStreamWrapper:
 async def create_resumable_stream(
     stream_id: str,
     stream_factory: Callable[[], AsyncIterator[Any]],
-    checkpoint_manager: Optional[StreamCheckpointManager] = None,
-    resume_factory: Optional[Callable[[int], AsyncIterator[Any]]] = None,
+    checkpoint_manager: StreamCheckpointManager | None = None,
+    resume_factory: Callable[[int], AsyncIterator[Any]] | None = None,
 ) -> ResumableStreamWrapper:
     """재개 가능한 스트림 생성 헬퍼"""
     manager = checkpoint_manager or StreamCheckpointManager()

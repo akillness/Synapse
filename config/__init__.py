@@ -1,6 +1,6 @@
 """
 설정 모듈
 """
-from .settings import Settings, settings, ServiceConfig
+from .settings import ServiceConfig, Settings, settings
 
 __all__ = ["Settings", "settings", "ServiceConfig"]

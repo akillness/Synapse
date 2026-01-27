@@ -3,39 +3,35 @@ Resilient gRPC Client with Circuit Breaker, Retry, and Adaptive Timeout
 Phase 3: Full Resilience Support
 """
 
-import asyncio
 import logging
 import os
 import sys
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional
+from pathlib import Path
+from typing import Any
 
 import grpc
 
-from pathlib import Path
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from services.fallback import FallbackManager, create_default_fallback_manager
 from services.grpc_generated import ai_agent_pb2, ai_agent_pb2_grpc
+from services.interceptors.adaptive_timeout import (
+    AdaptiveTimeoutInterceptor,
+    TimeoutConfig,
+    TimeoutManager,
+)
 from services.interceptors.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitBreakerInterceptor,
-    CircuitBreakerStreamInterceptor,
 )
 from services.interceptors.retry import (
     RetryInterceptor,
     RetryPolicy,
-    RetryStreamInterceptor,
 )
-from services.interceptors.adaptive_timeout import (
-    AdaptiveTimeoutInterceptor,
-    AdaptiveTimeoutStreamInterceptor,
-    TimeoutManager,
-    TimeoutConfig,
-)
-from services.fallback import FallbackManager, create_default_fallback_manager
 
 logger = logging.getLogger(__name__)
 
@@ -69,15 +65,15 @@ class ResilientClientConfig:
 class ResilientGrpcClient:
     def __init__(self, config: ResilientClientConfig):
         self.config = config
-        self.channel: Optional[grpc.aio.Channel] = None
+        self.channel: grpc.aio.Channel | None = None
         self._connected = False
 
         self.logger = logging.getLogger(f"resilient.{config.service_name}")
 
-        self._circuit_breaker: Optional[CircuitBreaker] = None
-        self._timeout_manager: Optional[TimeoutManager] = None
-        self._fallback_manager: Optional[FallbackManager] = None
-        self._interceptors: List[grpc.aio.ClientInterceptor] = []
+        self._circuit_breaker: CircuitBreaker | None = None
+        self._timeout_manager: TimeoutManager | None = None
+        self._fallback_manager: FallbackManager | None = None
+        self._interceptors: list[grpc.aio.ClientInterceptor] = []
 
         self._setup_resilience()
 
@@ -164,7 +160,7 @@ class ResilientGrpcClient:
         finally:
             await self.disconnect()
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         metrics = {"service": self.config.service_name, "connected": self._connected}
 
         if self._circuit_breaker:
@@ -183,7 +179,7 @@ class ResilientClaudeClient(ResilientGrpcClient):
     def __init__(self, host: str = "127.0.0.1", port: int = 5011):
         config = ResilientClientConfig(host=host, port=port, service_name="claude")
         super().__init__(config)
-        self._stub: Optional[ai_agent_pb2_grpc.ClaudeServiceStub] = None
+        self._stub: ai_agent_pb2_grpc.ClaudeServiceStub | None = None
 
     @property
     def stub(self) -> ai_agent_pb2_grpc.ClaudeServiceStub:
@@ -191,7 +187,7 @@ class ResilientClaudeClient(ResilientGrpcClient):
             self._stub = ai_agent_pb2_grpc.ClaudeServiceStub(self.channel)
         return self._stub
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         request = ai_agent_pb2.HealthCheckRequest(service="claude")
         response = await self.stub.HealthCheck(request)
         return {
@@ -203,8 +199,8 @@ class ResilientClaudeClient(ResilientGrpcClient):
         }
 
     async def create_plan(
-        self, task: str, constraints: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, task: str, constraints: list[str] | None = None
+    ) -> dict[str, Any]:
         request = ai_agent_pb2.PlanRequest(
             task_description=task,
             constraints=constraints or [],
@@ -229,7 +225,7 @@ class ResilientClaudeClient(ResilientGrpcClient):
 
     async def generate_code(
         self, description: str, language: str = "python"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         request = ai_agent_pb2.GenerateCodeRequest(
             description=description, language=language
         )
@@ -241,7 +237,7 @@ class ResilientClaudeClient(ResilientGrpcClient):
             "generated_at": response.generated_at,
         }
 
-    async def stream_plan(self, task: str) -> AsyncIterator[Dict[str, Any]]:
+    async def stream_plan(self, task: str) -> AsyncIterator[dict[str, Any]]:
         request = ai_agent_pb2.PlanRequest(task_description=task)
         async for message in self.stub.StreamPlan(request):
             yield {
@@ -257,7 +253,7 @@ class ResilientGeminiClient(ResilientGrpcClient):
     def __init__(self, host: str = "127.0.0.1", port: int = 5012):
         config = ResilientClientConfig(host=host, port=port, service_name="gemini")
         super().__init__(config)
-        self._stub: Optional[ai_agent_pb2_grpc.GeminiServiceStub] = None
+        self._stub: ai_agent_pb2_grpc.GeminiServiceStub | None = None
 
     @property
     def stub(self) -> ai_agent_pb2_grpc.GeminiServiceStub:
@@ -265,7 +261,7 @@ class ResilientGeminiClient(ResilientGrpcClient):
             self._stub = ai_agent_pb2_grpc.GeminiServiceStub(self.channel)
         return self._stub
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         request = ai_agent_pb2.HealthCheckRequest(service="gemini")
         response = await self.stub.HealthCheck(request)
         return {
@@ -278,7 +274,7 @@ class ResilientGeminiClient(ResilientGrpcClient):
 
     async def analyze(
         self, content: str, analysis_type: str = "general"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         request = ai_agent_pb2.AnalyzeRequest(
             content=content, analysis_type=analysis_type
         )
@@ -299,7 +295,7 @@ class ResilientGeminiClient(ResilientGrpcClient):
             "analyzed_at": response.analyzed_at,
         }
 
-    async def review_code(self, code: str, language: str = "python") -> Dict[str, Any]:
+    async def review_code(self, code: str, language: str = "python") -> dict[str, Any]:
         request = ai_agent_pb2.ReviewCodeRequest(
             code=code, language=language, review_type="comprehensive"
         )
@@ -326,7 +322,7 @@ class ResilientCodexClient(ResilientGrpcClient):
     def __init__(self, host: str = "127.0.0.1", port: int = 5013):
         config = ResilientClientConfig(host=host, port=port, service_name="codex")
         super().__init__(config)
-        self._stub: Optional[ai_agent_pb2_grpc.CodexServiceStub] = None
+        self._stub: ai_agent_pb2_grpc.CodexServiceStub | None = None
 
     @property
     def stub(self) -> ai_agent_pb2_grpc.CodexServiceStub:
@@ -334,7 +330,7 @@ class ResilientCodexClient(ResilientGrpcClient):
             self._stub = ai_agent_pb2_grpc.CodexServiceStub(self.channel)
         return self._stub
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         request = ai_agent_pb2.HealthCheckRequest(service="codex")
         response = await self.stub.HealthCheck(request)
         return {
@@ -346,8 +342,8 @@ class ResilientCodexClient(ResilientGrpcClient):
         }
 
     async def execute(
-        self, command: str, working_dir: Optional[str] = None, timeout: int = 30
-    ) -> Dict[str, Any]:
+        self, command: str, working_dir: str | None = None, timeout: int = 30
+    ) -> dict[str, Any]:
         request = ai_agent_pb2.ExecuteRequest(
             command=command,
             working_dir=working_dir or os.getcwd(),
@@ -365,8 +361,8 @@ class ResilientCodexClient(ResilientGrpcClient):
         }
 
     async def stream_execute(
-        self, command: str, working_dir: Optional[str] = None
-    ) -> AsyncIterator[Dict[str, Any]]:
+        self, command: str, working_dir: str | None = None
+    ) -> AsyncIterator[dict[str, Any]]:
         request = ai_agent_pb2.ExecuteRequest(
             command=command, working_dir=working_dir or os.getcwd()
         )

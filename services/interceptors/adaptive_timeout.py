@@ -12,8 +12,9 @@ import asyncio
 import logging
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import grpc
 
@@ -28,7 +29,7 @@ class TimeoutConfig:
     min_timeout: float = 5.0
     max_timeout: float = 120.0
 
-    method_timeouts: Dict[str, float] = field(
+    method_timeouts: dict[str, float] = field(
         default_factory=lambda: {
             "HealthCheck": 5.0,
             "CreatePlan": 60.0,
@@ -50,9 +51,9 @@ class TimeoutConfig:
 class TimeoutManager:
     """응답 시간 기반 동적 타임아웃 관리"""
 
-    def __init__(self, config: Optional[TimeoutConfig] = None):
+    def __init__(self, config: TimeoutConfig | None = None):
         self.config = config or TimeoutConfig()
-        self._response_times: Dict[str, List[float]] = defaultdict(list)
+        self._response_times: dict[str, list[float]] = defaultdict(list)
         self._lock = asyncio.Lock()
 
     async def record_response_time(self, method: str, duration: float):
@@ -64,7 +65,7 @@ class TimeoutManager:
             if len(history) > self.config.history_size:
                 history.pop(0)
 
-    def _get_percentile(self, data: List[float], percentile: float) -> float:
+    def _get_percentile(self, data: list[float], percentile: float) -> float:
         """백분위수 계산"""
         if not data:
             return self.config.default_timeout
@@ -113,7 +114,7 @@ class TimeoutManager:
 
             return final_timeout
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """메트릭 반환"""
         metrics = {}
         for method, times in self._response_times.items():
@@ -137,8 +138,8 @@ class AdaptiveTimeoutInterceptor(grpc.aio.UnaryUnaryClientInterceptor):
 
     def __init__(
         self,
-        timeout_manager: Optional[TimeoutManager] = None,
-        config: Optional[TimeoutConfig] = None,
+        timeout_manager: TimeoutManager | None = None,
+        config: TimeoutConfig | None = None,
     ):
         self.timeout_manager = timeout_manager or TimeoutManager(config)
 
@@ -183,8 +184,8 @@ class AdaptiveTimeoutStreamInterceptor(grpc.aio.UnaryStreamClientInterceptor):
 
     def __init__(
         self,
-        timeout_manager: Optional[TimeoutManager] = None,
-        config: Optional[TimeoutConfig] = None,
+        timeout_manager: TimeoutManager | None = None,
+        config: TimeoutConfig | None = None,
     ):
         self.timeout_manager = timeout_manager or TimeoutManager(config)
 

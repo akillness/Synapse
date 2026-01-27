@@ -1,21 +1,20 @@
 import asyncio
-import pytest
-from unittest.mock import MagicMock
-
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from services.fallback import (
-    FallbackConfig,
-    FallbackCache,
-    FallbackManager,
-    RuleBasedFallback,
-    ClaudeFallbackHandler,
-    GeminiFallbackHandler,
-    CodexFallbackHandler,
     CacheEntry,
+    ClaudeFallbackHandler,
+    CodexFallbackHandler,
+    FallbackCache,
+    FallbackConfig,
+    GeminiFallbackHandler,
+    RuleBasedFallback,
     create_default_fallback_manager,
 )
 

@@ -1,9 +1,8 @@
 """
 멀티프로세스 AI 시스템 - 설정
 """
-from dataclasses import dataclass
-from typing import Dict
 import os
+from dataclasses import dataclass
 
 
 @dataclass
@@ -18,7 +17,7 @@ class ServiceConfig:
 class Settings:
     """전역 설정"""
     # 서비스 포트 매핑
-    SERVICES: Dict[str, ServiceConfig] = None
+    SERVICES: dict[str, ServiceConfig] = None
 
     # 통신 설정
     MESSAGE_MAX_SIZE: int = 10 * 1024 * 1024  # 10MB

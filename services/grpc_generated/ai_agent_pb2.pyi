@@ -1,9 +1,11 @@
-from google.protobuf.internal import containers as _containers
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
+from collections.abc import Iterable as _Iterable
+from collections.abc import Mapping as _Mapping
+from typing import ClassVar as _ClassVar
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -15,7 +17,7 @@ class AgentRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     REQUEST_ID_FIELD_NUMBER: _ClassVar[int]
     SOURCE_AGENT_FIELD_NUMBER: _ClassVar[int]
     TARGET_AGENT_FIELD_NUMBER: _ClassVar[int]
@@ -30,7 +32,7 @@ class AgentRequest(_message.Message):
     payload: bytes
     metadata: _containers.ScalarMap[str, str]
     timestamp: int
-    def __init__(self, request_id: _Optional[str] = ..., source_agent: _Optional[str] = ..., target_agent: _Optional[str] = ..., method: _Optional[str] = ..., payload: _Optional[bytes] = ..., metadata: _Optional[_Mapping[str, str]] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    def __init__(self, request_id: str | None = ..., source_agent: str | None = ..., target_agent: str | None = ..., method: str | None = ..., payload: bytes | None = ..., metadata: _Mapping[str, str] | None = ..., timestamp: int | None = ...) -> None: ...
 
 class AgentResponse(_message.Message):
     __slots__ = ("request_id", "success", "result", "error_message", "error_code", "timestamp")
@@ -46,13 +48,13 @@ class AgentResponse(_message.Message):
     error_message: str
     error_code: int
     timestamp: int
-    def __init__(self, request_id: _Optional[str] = ..., success: bool = ..., result: _Optional[bytes] = ..., error_message: _Optional[str] = ..., error_code: _Optional[int] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    def __init__(self, request_id: str | None = ..., success: bool = ..., result: bytes | None = ..., error_message: str | None = ..., error_code: int | None = ..., timestamp: int | None = ...) -> None: ...
 
 class HealthCheckRequest(_message.Message):
     __slots__ = ("service",)
     SERVICE_FIELD_NUMBER: _ClassVar[int]
     service: str
-    def __init__(self, service: _Optional[str] = ...) -> None: ...
+    def __init__(self, service: str | None = ...) -> None: ...
 
 class HealthCheckResponse(_message.Message):
     __slots__ = ("status", "version", "uptime_seconds", "active_connections")
@@ -74,7 +76,7 @@ class HealthCheckResponse(_message.Message):
     version: str
     uptime_seconds: int
     active_connections: int
-    def __init__(self, status: _Optional[_Union[HealthCheckResponse.ServingStatus, str]] = ..., version: _Optional[str] = ..., uptime_seconds: _Optional[int] = ..., active_connections: _Optional[int] = ...) -> None: ...
+    def __init__(self, status: HealthCheckResponse.ServingStatus | str | None = ..., version: str | None = ..., uptime_seconds: int | None = ..., active_connections: int | None = ...) -> None: ...
 
 class PlanRequest(_message.Message):
     __slots__ = ("task_description", "context_files", "constraints", "options")
@@ -84,7 +86,7 @@ class PlanRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     TASK_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FILES_FIELD_NUMBER: _ClassVar[int]
     CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
@@ -93,7 +95,7 @@ class PlanRequest(_message.Message):
     context_files: _containers.RepeatedScalarFieldContainer[str]
     constraints: _containers.RepeatedScalarFieldContainer[str]
     options: _containers.ScalarMap[str, str]
-    def __init__(self, task_description: _Optional[str] = ..., context_files: _Optional[_Iterable[str]] = ..., constraints: _Optional[_Iterable[str]] = ..., options: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, task_description: str | None = ..., context_files: _Iterable[str] | None = ..., constraints: _Iterable[str] | None = ..., options: _Mapping[str, str] | None = ...) -> None: ...
 
 class PlanResponse(_message.Message):
     __slots__ = ("task", "steps", "total_steps", "estimated_agents", "created_at")
@@ -105,7 +107,7 @@ class PlanResponse(_message.Message):
             VALUE_FIELD_NUMBER: _ClassVar[int]
             key: str
             value: str
-            def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+            def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
         ORDER_FIELD_NUMBER: _ClassVar[int]
         PHASE_FIELD_NUMBER: _ClassVar[int]
         ACTION_FIELD_NUMBER: _ClassVar[int]
@@ -118,7 +120,7 @@ class PlanResponse(_message.Message):
         agent: str
         description: str
         params: _containers.ScalarMap[str, str]
-        def __init__(self, order: _Optional[int] = ..., phase: _Optional[str] = ..., action: _Optional[str] = ..., agent: _Optional[str] = ..., description: _Optional[str] = ..., params: _Optional[_Mapping[str, str]] = ...) -> None: ...
+        def __init__(self, order: int | None = ..., phase: str | None = ..., action: str | None = ..., agent: str | None = ..., description: str | None = ..., params: _Mapping[str, str] | None = ...) -> None: ...
     TASK_FIELD_NUMBER: _ClassVar[int]
     STEPS_FIELD_NUMBER: _ClassVar[int]
     TOTAL_STEPS_FIELD_NUMBER: _ClassVar[int]
@@ -129,7 +131,7 @@ class PlanResponse(_message.Message):
     total_steps: int
     estimated_agents: _containers.RepeatedScalarFieldContainer[str]
     created_at: str
-    def __init__(self, task: _Optional[str] = ..., steps: _Optional[_Iterable[_Union[PlanResponse.PlanStep, _Mapping]]] = ..., total_steps: _Optional[int] = ..., estimated_agents: _Optional[_Iterable[str]] = ..., created_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, task: str | None = ..., steps: _Iterable[PlanResponse.PlanStep | _Mapping] | None = ..., total_steps: int | None = ..., estimated_agents: _Iterable[str] | None = ..., created_at: str | None = ...) -> None: ...
 
 class GenerateCodeRequest(_message.Message):
     __slots__ = ("description", "language", "context", "options")
@@ -139,7 +141,7 @@ class GenerateCodeRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
@@ -148,7 +150,7 @@ class GenerateCodeRequest(_message.Message):
     language: str
     context: str
     options: _containers.ScalarMap[str, str]
-    def __init__(self, description: _Optional[str] = ..., language: _Optional[str] = ..., context: _Optional[str] = ..., options: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, description: str | None = ..., language: str | None = ..., context: str | None = ..., options: _Mapping[str, str] | None = ...) -> None: ...
 
 class GenerateCodeResponse(_message.Message):
     __slots__ = ("language", "code", "description", "generated_at")
@@ -160,7 +162,7 @@ class GenerateCodeResponse(_message.Message):
     code: str
     description: str
     generated_at: str
-    def __init__(self, language: _Optional[str] = ..., code: _Optional[str] = ..., description: _Optional[str] = ..., generated_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, language: str | None = ..., code: str | None = ..., description: str | None = ..., generated_at: str | None = ...) -> None: ...
 
 class OrchestrateRequest(_message.Message):
     __slots__ = ("workflow_id", "workflow", "context")
@@ -170,7 +172,7 @@ class OrchestrateRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     class WorkflowStep(_message.Message):
         __slots__ = ("order", "agent", "action", "params")
         ORDER_FIELD_NUMBER: _ClassVar[int]
@@ -181,14 +183,14 @@ class OrchestrateRequest(_message.Message):
         agent: str
         action: str
         params: bytes
-        def __init__(self, order: _Optional[int] = ..., agent: _Optional[str] = ..., action: _Optional[str] = ..., params: _Optional[bytes] = ...) -> None: ...
+        def __init__(self, order: int | None = ..., agent: str | None = ..., action: str | None = ..., params: bytes | None = ...) -> None: ...
     WORKFLOW_ID_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_FIELD_NUMBER: _ClassVar[int]
     CONTEXT_FIELD_NUMBER: _ClassVar[int]
     workflow_id: str
     workflow: _containers.RepeatedCompositeFieldContainer[OrchestrateRequest.WorkflowStep]
     context: _containers.ScalarMap[str, str]
-    def __init__(self, workflow_id: _Optional[str] = ..., workflow: _Optional[_Iterable[_Union[OrchestrateRequest.WorkflowStep, _Mapping]]] = ..., context: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, workflow_id: str | None = ..., workflow: _Iterable[OrchestrateRequest.WorkflowStep | _Mapping] | None = ..., context: _Mapping[str, str] | None = ...) -> None: ...
 
 class OrchestrateResponse(_message.Message):
     __slots__ = ("workflow_id", "results", "completed", "completed_at")
@@ -206,7 +208,7 @@ class OrchestrateResponse(_message.Message):
         status: str
         result: bytes
         completed_at: str
-        def __init__(self, step: _Optional[int] = ..., agent: _Optional[str] = ..., action: _Optional[str] = ..., status: _Optional[str] = ..., result: _Optional[bytes] = ..., completed_at: _Optional[str] = ...) -> None: ...
+        def __init__(self, step: int | None = ..., agent: str | None = ..., action: str | None = ..., status: str | None = ..., result: bytes | None = ..., completed_at: str | None = ...) -> None: ...
     WORKFLOW_ID_FIELD_NUMBER: _ClassVar[int]
     RESULTS_FIELD_NUMBER: _ClassVar[int]
     COMPLETED_FIELD_NUMBER: _ClassVar[int]
@@ -215,7 +217,7 @@ class OrchestrateResponse(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[OrchestrateResponse.StepResult]
     completed: bool
     completed_at: str
-    def __init__(self, workflow_id: _Optional[str] = ..., results: _Optional[_Iterable[_Union[OrchestrateResponse.StepResult, _Mapping]]] = ..., completed: bool = ..., completed_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, workflow_id: str | None = ..., results: _Iterable[OrchestrateResponse.StepResult | _Mapping] | None = ..., completed: bool = ..., completed_at: str | None = ...) -> None: ...
 
 class AnalyzeRequest(_message.Message):
     __slots__ = ("content", "analysis_type", "max_tokens", "options")
@@ -225,7 +227,7 @@ class AnalyzeRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     CONTENT_FIELD_NUMBER: _ClassVar[int]
     ANALYSIS_TYPE_FIELD_NUMBER: _ClassVar[int]
     MAX_TOKENS_FIELD_NUMBER: _ClassVar[int]
@@ -234,7 +236,7 @@ class AnalyzeRequest(_message.Message):
     analysis_type: str
     max_tokens: int
     options: _containers.ScalarMap[str, str]
-    def __init__(self, content: _Optional[str] = ..., analysis_type: _Optional[str] = ..., max_tokens: _Optional[int] = ..., options: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, content: str | None = ..., analysis_type: str | None = ..., max_tokens: int | None = ..., options: _Mapping[str, str] | None = ...) -> None: ...
 
 class AnalyzeResponse(_message.Message):
     __slots__ = ("analysis_type", "content_length", "token_estimate", "findings", "summary", "analyzed_at")
@@ -248,7 +250,7 @@ class AnalyzeResponse(_message.Message):
         severity: str
         description: str
         suggestion: str
-        def __init__(self, category: _Optional[str] = ..., severity: _Optional[str] = ..., description: _Optional[str] = ..., suggestion: _Optional[str] = ...) -> None: ...
+        def __init__(self, category: str | None = ..., severity: str | None = ..., description: str | None = ..., suggestion: str | None = ...) -> None: ...
     ANALYSIS_TYPE_FIELD_NUMBER: _ClassVar[int]
     CONTENT_LENGTH_FIELD_NUMBER: _ClassVar[int]
     TOKEN_ESTIMATE_FIELD_NUMBER: _ClassVar[int]
@@ -261,7 +263,7 @@ class AnalyzeResponse(_message.Message):
     findings: _containers.RepeatedCompositeFieldContainer[AnalyzeResponse.Finding]
     summary: str
     analyzed_at: str
-    def __init__(self, analysis_type: _Optional[str] = ..., content_length: _Optional[int] = ..., token_estimate: _Optional[int] = ..., findings: _Optional[_Iterable[_Union[AnalyzeResponse.Finding, _Mapping]]] = ..., summary: _Optional[str] = ..., analyzed_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, analysis_type: str | None = ..., content_length: int | None = ..., token_estimate: int | None = ..., findings: _Iterable[AnalyzeResponse.Finding | _Mapping] | None = ..., summary: str | None = ..., analyzed_at: str | None = ...) -> None: ...
 
 class ReviewCodeRequest(_message.Message):
     __slots__ = ("code", "language", "review_type", "options")
@@ -271,7 +273,7 @@ class ReviewCodeRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     CODE_FIELD_NUMBER: _ClassVar[int]
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     REVIEW_TYPE_FIELD_NUMBER: _ClassVar[int]
@@ -280,7 +282,7 @@ class ReviewCodeRequest(_message.Message):
     language: str
     review_type: str
     options: _containers.ScalarMap[str, str]
-    def __init__(self, code: _Optional[str] = ..., language: _Optional[str] = ..., review_type: _Optional[str] = ..., options: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, code: str | None = ..., language: str | None = ..., review_type: str | None = ..., options: _Mapping[str, str] | None = ...) -> None: ...
 
 class ReviewCodeResponse(_message.Message):
     __slots__ = ("language", "review_type", "code_length", "issues", "overall_score", "reviewed_at")
@@ -296,7 +298,7 @@ class ReviewCodeResponse(_message.Message):
         line: int
         message: str
         suggestion: str
-        def __init__(self, type: _Optional[str] = ..., severity: _Optional[str] = ..., line: _Optional[int] = ..., message: _Optional[str] = ..., suggestion: _Optional[str] = ...) -> None: ...
+        def __init__(self, type: str | None = ..., severity: str | None = ..., line: int | None = ..., message: str | None = ..., suggestion: str | None = ...) -> None: ...
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     REVIEW_TYPE_FIELD_NUMBER: _ClassVar[int]
     CODE_LENGTH_FIELD_NUMBER: _ClassVar[int]
@@ -309,7 +311,7 @@ class ReviewCodeResponse(_message.Message):
     issues: _containers.RepeatedCompositeFieldContainer[ReviewCodeResponse.Issue]
     overall_score: float
     reviewed_at: str
-    def __init__(self, language: _Optional[str] = ..., review_type: _Optional[str] = ..., code_length: _Optional[int] = ..., issues: _Optional[_Iterable[_Union[ReviewCodeResponse.Issue, _Mapping]]] = ..., overall_score: _Optional[float] = ..., reviewed_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, language: str | None = ..., review_type: str | None = ..., code_length: int | None = ..., issues: _Iterable[ReviewCodeResponse.Issue | _Mapping] | None = ..., overall_score: float | None = ..., reviewed_at: str | None = ...) -> None: ...
 
 class ResearchRequest(_message.Message):
     __slots__ = ("query", "sources", "depth")
@@ -319,7 +321,7 @@ class ResearchRequest(_message.Message):
     query: str
     sources: _containers.RepeatedScalarFieldContainer[str]
     depth: str
-    def __init__(self, query: _Optional[str] = ..., sources: _Optional[_Iterable[str]] = ..., depth: _Optional[str] = ...) -> None: ...
+    def __init__(self, query: str | None = ..., sources: _Iterable[str] | None = ..., depth: str | None = ...) -> None: ...
 
 class ResearchResponse(_message.Message):
     __slots__ = ("query", "depth", "results", "sources_consulted", "researched_at")
@@ -333,7 +335,7 @@ class ResearchResponse(_message.Message):
         finding: str
         confidence: float
         relevance: str
-        def __init__(self, topic: _Optional[str] = ..., finding: _Optional[str] = ..., confidence: _Optional[float] = ..., relevance: _Optional[str] = ...) -> None: ...
+        def __init__(self, topic: str | None = ..., finding: str | None = ..., confidence: float | None = ..., relevance: str | None = ...) -> None: ...
     QUERY_FIELD_NUMBER: _ClassVar[int]
     DEPTH_FIELD_NUMBER: _ClassVar[int]
     RESULTS_FIELD_NUMBER: _ClassVar[int]
@@ -344,7 +346,7 @@ class ResearchResponse(_message.Message):
     results: _containers.RepeatedCompositeFieldContainer[ResearchResponse.ResearchResult]
     sources_consulted: int
     researched_at: str
-    def __init__(self, query: _Optional[str] = ..., depth: _Optional[str] = ..., results: _Optional[_Iterable[_Union[ResearchResponse.ResearchResult, _Mapping]]] = ..., sources_consulted: _Optional[int] = ..., researched_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, query: str | None = ..., depth: str | None = ..., results: _Iterable[ResearchResponse.ResearchResult | _Mapping] | None = ..., sources_consulted: int | None = ..., researched_at: str | None = ...) -> None: ...
 
 class ExecuteRequest(_message.Message):
     __slots__ = ("command", "working_dir", "environment", "timeout_seconds")
@@ -354,7 +356,7 @@ class ExecuteRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     COMMAND_FIELD_NUMBER: _ClassVar[int]
     WORKING_DIR_FIELD_NUMBER: _ClassVar[int]
     ENVIRONMENT_FIELD_NUMBER: _ClassVar[int]
@@ -363,7 +365,7 @@ class ExecuteRequest(_message.Message):
     working_dir: str
     environment: _containers.ScalarMap[str, str]
     timeout_seconds: int
-    def __init__(self, command: _Optional[str] = ..., working_dir: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ..., timeout_seconds: _Optional[int] = ...) -> None: ...
+    def __init__(self, command: str | None = ..., working_dir: str | None = ..., environment: _Mapping[str, str] | None = ..., timeout_seconds: int | None = ...) -> None: ...
 
 class ExecuteResponse(_message.Message):
     __slots__ = ("success", "command", "exit_code", "stdout", "stderr", "duration_seconds", "executed_at")
@@ -381,7 +383,7 @@ class ExecuteResponse(_message.Message):
     stderr: str
     duration_seconds: float
     executed_at: str
-    def __init__(self, success: bool = ..., command: _Optional[str] = ..., exit_code: _Optional[int] = ..., stdout: _Optional[str] = ..., stderr: _Optional[str] = ..., duration_seconds: _Optional[float] = ..., executed_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, success: bool = ..., command: str | None = ..., exit_code: int | None = ..., stdout: str | None = ..., stderr: str | None = ..., duration_seconds: float | None = ..., executed_at: str | None = ...) -> None: ...
 
 class BuildRequest(_message.Message):
     __slots__ = ("project_dir", "build_command", "environment")
@@ -391,14 +393,14 @@ class BuildRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     PROJECT_DIR_FIELD_NUMBER: _ClassVar[int]
     BUILD_COMMAND_FIELD_NUMBER: _ClassVar[int]
     ENVIRONMENT_FIELD_NUMBER: _ClassVar[int]
     project_dir: str
     build_command: str
     environment: _containers.ScalarMap[str, str]
-    def __init__(self, project_dir: _Optional[str] = ..., build_command: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ...) -> None: ...
+    def __init__(self, project_dir: str | None = ..., build_command: str | None = ..., environment: _Mapping[str, str] | None = ...) -> None: ...
 
 class BuildResponse(_message.Message):
     __slots__ = ("success", "project_dir", "build_command", "exit_code", "stdout", "stderr", "duration_seconds", "built_at")
@@ -418,7 +420,7 @@ class BuildResponse(_message.Message):
     stderr: str
     duration_seconds: float
     built_at: str
-    def __init__(self, success: bool = ..., project_dir: _Optional[str] = ..., build_command: _Optional[str] = ..., exit_code: _Optional[int] = ..., stdout: _Optional[str] = ..., stderr: _Optional[str] = ..., duration_seconds: _Optional[float] = ..., built_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, success: bool = ..., project_dir: str | None = ..., build_command: str | None = ..., exit_code: int | None = ..., stdout: str | None = ..., stderr: str | None = ..., duration_seconds: float | None = ..., built_at: str | None = ...) -> None: ...
 
 class TestRequest(_message.Message):
     __slots__ = ("project_dir", "test_command", "coverage")
@@ -428,7 +430,7 @@ class TestRequest(_message.Message):
     project_dir: str
     test_command: str
     coverage: bool
-    def __init__(self, project_dir: _Optional[str] = ..., test_command: _Optional[str] = ..., coverage: bool = ...) -> None: ...
+    def __init__(self, project_dir: str | None = ..., test_command: str | None = ..., coverage: bool = ...) -> None: ...
 
 class TestResponse(_message.Message):
     __slots__ = ("success", "project_dir", "test_command", "exit_code", "output", "errors", "test_results", "duration_seconds", "tested_at")
@@ -442,7 +444,7 @@ class TestResponse(_message.Message):
         failed: int
         skipped: int
         coverage_percent: float
-        def __init__(self, passed: _Optional[int] = ..., failed: _Optional[int] = ..., skipped: _Optional[int] = ..., coverage_percent: _Optional[float] = ...) -> None: ...
+        def __init__(self, passed: int | None = ..., failed: int | None = ..., skipped: int | None = ..., coverage_percent: float | None = ...) -> None: ...
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     PROJECT_DIR_FIELD_NUMBER: _ClassVar[int]
     TEST_COMMAND_FIELD_NUMBER: _ClassVar[int]
@@ -461,7 +463,7 @@ class TestResponse(_message.Message):
     test_results: TestResponse.TestResults
     duration_seconds: float
     tested_at: str
-    def __init__(self, success: bool = ..., project_dir: _Optional[str] = ..., test_command: _Optional[str] = ..., exit_code: _Optional[int] = ..., output: _Optional[str] = ..., errors: _Optional[str] = ..., test_results: _Optional[_Union[TestResponse.TestResults, _Mapping]] = ..., duration_seconds: _Optional[float] = ..., tested_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, success: bool = ..., project_dir: str | None = ..., test_command: str | None = ..., exit_code: int | None = ..., output: str | None = ..., errors: str | None = ..., test_results: TestResponse.TestResults | _Mapping | None = ..., duration_seconds: float | None = ..., tested_at: str | None = ...) -> None: ...
 
 class DeployRequest(_message.Message):
     __slots__ = ("target", "config", "dry_run")
@@ -471,14 +473,14 @@ class DeployRequest(_message.Message):
         VALUE_FIELD_NUMBER: _ClassVar[int]
         key: str
         value: str
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(self, key: str | None = ..., value: str | None = ...) -> None: ...
     TARGET_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     DRY_RUN_FIELD_NUMBER: _ClassVar[int]
     target: str
     config: _containers.ScalarMap[str, str]
     dry_run: bool
-    def __init__(self, target: _Optional[str] = ..., config: _Optional[_Mapping[str, str]] = ..., dry_run: bool = ...) -> None: ...
+    def __init__(self, target: str | None = ..., config: _Mapping[str, str] | None = ..., dry_run: bool = ...) -> None: ...
 
 class DeployResponse(_message.Message):
     __slots__ = ("success", "target", "dry_run", "message", "steps", "deployed_at")
@@ -494,7 +496,7 @@ class DeployResponse(_message.Message):
     message: str
     steps: _containers.RepeatedScalarFieldContainer[str]
     deployed_at: str
-    def __init__(self, success: bool = ..., target: _Optional[str] = ..., dry_run: bool = ..., message: _Optional[str] = ..., steps: _Optional[_Iterable[str]] = ..., deployed_at: _Optional[str] = ...) -> None: ...
+    def __init__(self, success: bool = ..., target: str | None = ..., dry_run: bool = ..., message: str | None = ..., steps: _Iterable[str] | None = ..., deployed_at: str | None = ...) -> None: ...
 
 class StreamMessage(_message.Message):
     __slots__ = ("stream_id", "type", "content", "progress_percent", "timestamp")
@@ -508,4 +510,4 @@ class StreamMessage(_message.Message):
     content: str
     progress_percent: float
     timestamp: int
-    def __init__(self, stream_id: _Optional[str] = ..., type: _Optional[str] = ..., content: _Optional[str] = ..., progress_percent: _Optional[float] = ..., timestamp: _Optional[int] = ...) -> None: ...
+    def __init__(self, stream_id: str | None = ..., type: str | None = ..., content: str | None = ..., progress_percent: float | None = ..., timestamp: int | None = ...) -> None: ...

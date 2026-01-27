@@ -2,12 +2,14 @@
 베이스 서비스 클래스
 """
 import asyncio
+import contextlib
 import logging
 import signal
 import sys
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any
 
 from .protocol import (
     ErrorCode,
@@ -17,16 +19,16 @@ from .protocol import (
 )
 
 # 타입 별칭
-MethodHandler = Callable[[Dict[str, Any]], Any]
+MethodHandler = Callable[[dict[str, Any]], Any]
 
 
 class ServiceProtocol:
     """서비스 프로토콜 인터페이스"""
 
-    async def health(self) -> Dict[str, Any]:
+    async def health(self) -> dict[str, Any]:
         raise NotImplementedError
 
-    async def process(self, params: Dict[str, Any]) -> Any:
+    async def process(self, params: dict[str, Any]) -> Any:
         raise NotImplementedError
 
 
@@ -45,13 +47,13 @@ class BaseService(ABC):
         self.port = port
 
         # 상태
-        self.server: Optional[asyncio.Server] = None
-        self.start_time: Optional[datetime] = None
-        self.connections: Set[asyncio.StreamWriter] = set()
+        self.server: asyncio.Server | None = None
+        self.start_time: datetime | None = None
+        self.connections: set[asyncio.StreamWriter] = set()
         self._running = False
 
         # 메서드 핸들러 레지스트리
-        self._handlers: Dict[str, MethodHandler] = {}
+        self._handlers: dict[str, MethodHandler] = {}
 
         # 로깅 설정
         self.logger = logging.getLogger(f"service.{name}")
@@ -81,7 +83,7 @@ class BaseService(ABC):
         self._handlers[method] = handler
         self.logger.debug(f"Registered handler: {method}")
 
-    async def _handle_health(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_health(self, params: dict[str, Any]) -> dict[str, Any]:
         """헬스 체크 핸들러"""
         uptime = 0
         if self.start_time:
@@ -97,11 +99,11 @@ class BaseService(ABC):
             "timestamp": datetime.now().isoformat(),
         }
 
-    async def _handle_ping(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_ping(self, params: dict[str, Any]) -> dict[str, Any]:
         """핑 핸들러"""
         return {"pong": True, "timestamp": datetime.now().isoformat()}
 
-    async def _handle_info(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_info(self, params: dict[str, Any]) -> dict[str, Any]:
         """서비스 정보 핸들러"""
         return {
             "name": self.name,
@@ -151,10 +153,8 @@ class BaseService(ABC):
         # 모든 연결 종료
         for writer in list(self.connections):
             writer.close()
-            try:
+            with contextlib.suppress(Exception):
                 await writer.wait_closed()
-            except Exception:
-                pass
 
         if self.server:
             self.server.close()
@@ -181,7 +181,7 @@ class BaseService(ABC):
                         reader.readexactly(MessageFramer.HEADER_SIZE),
                         timeout=300.0,  # 5분 타임아웃
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     self.logger.debug(f"Connection timeout: {conn_id}")
                     break
 
@@ -215,10 +215,8 @@ class BaseService(ABC):
         finally:
             self.connections.discard(writer)
             writer.close()
-            try:
+            with contextlib.suppress(Exception):
                 await writer.wait_closed()
-            except Exception:
-                pass
             self.logger.debug(f"Connection closed: {conn_id}")
 
     async def _process_request(self, request: JsonRpcRequest) -> JsonRpcResponse:
@@ -288,6 +286,6 @@ class BaseService(ABC):
         await self._send_response(writer, response)
 
     @abstractmethod
-    async def process(self, params: Dict[str, Any]) -> Any:
+    async def process(self, params: dict[str, Any]) -> Any:
         """서비스별 처리 로직 (서브클래스에서 구현)"""
         pass

@@ -3,19 +3,19 @@ gRPC Interceptors for Resilience
 Phase 3: Circuit Breaker, Retry, Adaptive Timeout
 """
 
+from .adaptive_timeout import (
+    AdaptiveTimeoutInterceptor,
+    TimeoutManager,
+)
 from .circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerInterceptor,
-    CircuitBreakerState,
     CircuitBreakerOpenError,
+    CircuitBreakerState,
 )
 from .retry import (
     RetryInterceptor,
     RetryPolicy,
-)
-from .adaptive_timeout import (
-    AdaptiveTimeoutInterceptor,
-    TimeoutManager,
 )
 
 __all__ = [

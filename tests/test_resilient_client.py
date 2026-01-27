@@ -1,18 +1,17 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from clients.resilient_client import (
     ResilienceConfig,
-    ResilientClientConfig,
-    ResilientGrpcClient,
     ResilientClaudeClient,
-    ResilientGeminiClient,
+    ResilientClientConfig,
     ResilientCodexClient,
+    ResilientGeminiClient,
+    ResilientGrpcClient,
     create_resilient_client,
 )
 

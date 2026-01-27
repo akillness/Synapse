@@ -1,21 +1,19 @@
 import asyncio
-import pytest
-from unittest.mock import AsyncMock
-
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from gateway.load_balancer import (
-    ServiceEndpoint,
-    LoadBalancerStrategy,
-    RoundRobinStrategy,
-    WeightedStrategy,
     LeastConnectionsStrategy,
     LeastResponseTimeStrategy,
     LoadBalancer,
     MultiServiceLoadBalancer,
+    RoundRobinStrategy,
+    ServiceEndpoint,
+    WeightedStrategy,
 )
 
 
@@ -91,7 +89,7 @@ class TestRoundRobinStrategy:
 
         selected1 = strategy.select(service_endpoints)
         selected2 = strategy.select(service_endpoints)
-        selected3 = strategy.select(service_endpoints)
+        strategy.select(service_endpoints)
 
         assert selected1.port in [5002, 5003]
         assert selected2.port in [5002, 5003]

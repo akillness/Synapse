@@ -2,16 +2,15 @@
 TCP 클라이언트 - 서비스 통신용
 """
 import asyncio
-import json
 import logging
-import uuid
-from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
 
 # 상위 모듈 임포트를 위한 경로 설정
 import sys
+import uuid
+from contextlib import asynccontextmanager, suppress
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -38,8 +37,8 @@ class TcpClient:
 
     def __init__(self, config: ConnectionConfig):
         self.config = config
-        self.reader: Optional[asyncio.StreamReader] = None
-        self.writer: Optional[asyncio.StreamWriter] = None
+        self.reader: asyncio.StreamReader | None = None
+        self.writer: asyncio.StreamWriter | None = None
         self._lock = asyncio.Lock()
         self._connected = False
 
@@ -64,7 +63,7 @@ class TcpClient:
             self.logger.info(f"Connected to {self.config.host}:{self.config.port}")
             return True
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.logger.error(f"Connection timeout: {self.config.host}:{self.config.port}")
             return False
         except ConnectionRefusedError:
@@ -78,10 +77,8 @@ class TcpClient:
         """연결 종료"""
         if self.writer:
             self.writer.close()
-            try:
+            with suppress(Exception):
                 await self.writer.wait_closed()
-            except Exception:
-                pass
             self.writer = None
             self.reader = None
             self._connected = False
@@ -90,8 +87,8 @@ class TcpClient:
     async def send_request(
         self,
         method: str,
-        params: Optional[Dict[str, Any]] = None,
-        timeout: Optional[float] = None,
+        params: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> JsonRpcResponse:
         """요청 전송 및 응답 수신"""
         if not self._connected:
@@ -122,7 +119,7 @@ class TcpClient:
 
                 return JsonRpcResponse.from_dict(response_data)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 self.logger.error(f"Request timeout: {method}")
                 return JsonRpcResponse.create_error(
                     request.id, ErrorCode.TIMEOUT, "Request timeout"
@@ -137,7 +134,7 @@ class TcpClient:
     async def call(
         self,
         method: str,
-        params: Optional[Dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
         **kwargs,
     ) -> Any:
         """간편 호출 (결과만 반환)"""
@@ -194,19 +191,19 @@ class ServiceClient:
         return self.client.is_connected
 
     # 공통 메서드
-    async def health(self) -> Dict[str, Any]:
+    async def health(self) -> dict[str, Any]:
         """헬스 체크"""
         return await self.client.call("health")
 
-    async def ping(self) -> Dict[str, Any]:
+    async def ping(self) -> dict[str, Any]:
         """핑"""
         return await self.client.call("ping")
 
-    async def info(self) -> Dict[str, Any]:
+    async def info(self) -> dict[str, Any]:
         """서비스 정보"""
         return await self.client.call("info")
 
-    async def process(self, task: str, content: str = "") -> Dict[str, Any]:
+    async def process(self, task: str, content: str = "") -> dict[str, Any]:
         """범용 처리"""
         return await self.client.call("process", {"task": task, "content": content})
 
@@ -223,7 +220,7 @@ class ClaudeClient(ServiceClient):
     def __init__(self, host: str = "127.0.0.1"):
         super().__init__("claude", host)
 
-    async def plan(self, task: str, constraints: list = None) -> Dict[str, Any]:
+    async def plan(self, task: str, constraints: list = None) -> dict[str, Any]:
         """계획 수립"""
         return await self.client.call("plan", {
             "task": task,
@@ -235,7 +232,7 @@ class ClaudeClient(ServiceClient):
         description: str,
         language: str = "python",
         context: str = "",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """코드 생성"""
         return await self.client.call("generate_code", {
             "description": description,
@@ -247,7 +244,7 @@ class ClaudeClient(ServiceClient):
         self,
         workflow: list,
         context: dict = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """오케스트레이션"""
         return await self.client.call("orchestrate", {
             "workflow": workflow,
@@ -267,7 +264,7 @@ class GeminiClient(ServiceClient):
         content: str,
         analysis_type: str = "general",
         max_tokens: int = 100000,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """대용량 분석"""
         return await self.client.call("analyze", {
             "content": content,
@@ -280,7 +277,7 @@ class GeminiClient(ServiceClient):
         query: str,
         sources: list = None,
         depth: str = "standard",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """리서치"""
         return await self.client.call("research", {
             "query": query,
@@ -293,7 +290,7 @@ class GeminiClient(ServiceClient):
         code: str,
         language: str = "python",
         review_type: str = "comprehensive",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """코드 리뷰"""
         return await self.client.call("review_code", {
             "code": code,
@@ -314,7 +311,7 @@ class CodexClient(ServiceClient):
         working_dir: str = None,
         timeout: int = 30,
         env: dict = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """명령 실행"""
         import os
         return await self.client.call("execute", {
@@ -329,7 +326,7 @@ class CodexClient(ServiceClient):
         project_dir: str,
         build_command: str = "make build",
         env: dict = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """빌드"""
         return await self.client.call("build", {
             "project_dir": project_dir,
@@ -342,7 +339,7 @@ class CodexClient(ServiceClient):
         project_dir: str,
         test_command: str = "pytest -v",
         coverage: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """테스트 실행"""
         return await self.client.call("test", {
             "project_dir": project_dir,
@@ -355,7 +352,7 @@ class CodexClient(ServiceClient):
         target: str = "local",
         config: dict = None,
         dry_run: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """배포"""
         return await self.client.call("deploy", {
             "target": target,
