@@ -75,8 +75,10 @@ class TimeoutManager:
         index = min(index, len(sorted_data) - 1)
         return sorted_data[index]
 
-    def _extract_method_name(self, full_method: str) -> str:
+    def _extract_method_name(self, full_method: str | bytes) -> str:
         """gRPC 메서드 경로에서 메서드 이름 추출"""
+        if isinstance(full_method, bytes):
+            full_method = full_method.decode("utf-8")
         if "/" in full_method:
             return full_method.split("/")[-1]
         return full_method

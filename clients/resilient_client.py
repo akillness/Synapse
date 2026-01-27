@@ -174,7 +174,8 @@ class ResilientGrpcClient:
 
 
 class ResilientClaudeClient(ResilientGrpcClient):
-    def __init__(self, host: str = "127.0.0.1", port: int = 5011):
+    def __init__(self, host: str | None = None, port: int = 5011):
+        host = host or os.getenv("CLAUDE_HOST", "127.0.0.1")
         config = ResilientClientConfig(host=host, port=port, service_name="claude")
         super().__init__(config)
         self._stub: ai_agent_pb2_grpc.ClaudeServiceStub | None = None
@@ -240,7 +241,8 @@ class ResilientClaudeClient(ResilientGrpcClient):
 
 
 class ResilientGeminiClient(ResilientGrpcClient):
-    def __init__(self, host: str = "127.0.0.1", port: int = 5012):
+    def __init__(self, host: str | None = None, port: int = 5012):
+        host = host or os.getenv("GEMINI_HOST", "127.0.0.1")
         config = ResilientClientConfig(host=host, port=port, service_name="gemini")
         super().__init__(config)
         self._stub: ai_agent_pb2_grpc.GeminiServiceStub | None = None
@@ -303,7 +305,8 @@ class ResilientGeminiClient(ResilientGrpcClient):
 
 
 class ResilientCodexClient(ResilientGrpcClient):
-    def __init__(self, host: str = "127.0.0.1", port: int = 5013):
+    def __init__(self, host: str | None = None, port: int = 5013):
+        host = host or os.getenv("CODEX_HOST", "127.0.0.1")
         config = ResilientClientConfig(host=host, port=port, service_name="codex")
         super().__init__(config)
         self._stub: ai_agent_pb2_grpc.CodexServiceStub | None = None

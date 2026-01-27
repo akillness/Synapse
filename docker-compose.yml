@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: synaps-claude
-    command: ["python", "services/grpc_base_service.py", "claude"]
+    command: ["python", "-m", "services.grpc_base_service", "claude"]
     ports:
       - "5011:5011"
     environment:
@@ -26,7 +26,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: synaps-gemini
-    command: ["python", "services/grpc_base_service.py", "gemini"]
+    command: ["python", "-m", "services.grpc_base_service", "gemini"]
     ports:
       - "5012:5012"
     environment:
@@ -46,7 +46,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: synaps-codex
-    command: ["python", "services/grpc_base_service.py", "codex"]
+    command: ["python", "-m", "services.grpc_base_service", "codex"]
     ports:
       - "5013:5013"
     environment:
