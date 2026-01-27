@@ -12,9 +12,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM base AS builder
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml ./
 RUN pip install --no-cache-dir uv && \
-    uv pip install --system --no-cache .
+    uv pip install --system --no-cache \
+    grpcio>=1.60.0 \
+    grpcio-tools>=1.60.0 \
+    grpcio-health-checking>=1.60.0 \
+    protobuf>=4.25.0 \
+    fastapi>=0.109.0 \
+    "uvicorn[standard]>=0.27.0" \
+    pydantic>=2.5.0 \
+    httpx>=0.26.0 \
+    textual>=0.47.0 \
+    rich>=13.7.0
 
 FROM base AS runtime
 
