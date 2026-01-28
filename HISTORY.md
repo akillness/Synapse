@@ -165,7 +165,7 @@ gRPC: avg 0.36ms (min: 0.28ms, max: 0.91ms)
 | Codex | Executor | 5013 | - |
 | Gateway | API Entry | - | 8000 |
 | Prometheus | Metrics | - | 9090 |
-| Grafana | Dashboard | - | 3000 |
+| Grafana | Dashboard | - | 9300 |
 
 ---
 

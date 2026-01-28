@@ -223,7 +223,7 @@ config = ResilienceConfig(
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | Prometheus | http://localhost:9090 | - |
-| Grafana | http://localhost:3000 | admin/synaps123 |
+| Grafana | http://localhost:9300 | admin/synaps123 |
 | Gateway | http://localhost:8000 | - |
 | TUI | `synaps-tui` | - |
 

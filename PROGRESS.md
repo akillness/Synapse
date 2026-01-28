@@ -118,7 +118,7 @@ synapse-gemini    → Port 5012
 synapse-codex     → Port 5013
 synapse-gateway   → Port 8000
 prometheus        → Port 9090
-grafana           → Port 3000
+grafana           → Port 9300
 ```
 
 ---
