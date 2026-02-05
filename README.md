@@ -117,7 +117,8 @@ curl -X POST http://localhost:8000/api/v1/claude/plan \
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Gateway health |
-| GET | `/metrics` | Pool/LB metrics |
+| GET | `/metrics` | Prometheus metrics (text format) |
+| GET | `/metrics/json` | Pool/LB metrics (JSON format) |
 | POST | `/api/v1/claude/plan` | Create plan |
 | POST | `/api/v1/claude/code` | Generate code |
 | POST | `/api/v1/gemini/analyze` | Analyze content |
@@ -226,6 +227,35 @@ config = ResilienceConfig(
 | Grafana | http://localhost:9300 | admin/synaps123 |
 | Gateway | http://localhost:8000 | - |
 | TUI | `synaps-tui` | - |
+
+### Prometheus Metrics
+
+The API Gateway exposes Prometheus-formatted metrics at `/metrics`:
+
+| Metric | Type | Description | Labels |
+|--------|------|-------------|--------|
+| `synapse_requests_total` | Counter | Total number of requests | service, endpoint, method, status |
+| `synapse_request_duration_seconds` | Histogram | Request latency in seconds | service, endpoint, method |
+| `synapse_pool_size` | Gauge | Connection pool size | service, state (available/in_use/total) |
+| `synapse_pool_connections_created_total` | Counter | Total connections created | service |
+| `synapse_active_workflows` | Gauge | Active workflow count | workflow_type |
+
+### Endpoints
+
+```bash
+# Prometheus text format (for scraping)
+curl http://localhost:8000/metrics
+
+# JSON format (legacy, for debugging)
+curl http://localhost:8000/metrics/json
+```
+
+### Grafana Dashboards
+
+Pre-configured dashboards are available in `monitoring/grafana/`:
+- **Synapse Overview**: Request rates, latency percentiles, error rates
+- **Connection Pools**: Pool utilization, connection lifecycle
+- **Service Health**: Per-service health status and circuit breaker states
 
 ## Performance
 

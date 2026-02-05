@@ -10,10 +10,49 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 from pydantic import BaseModel, Field
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Prometheus Metrics
+REQUEST_COUNT = Counter(
+    "synapse_requests_total",
+    "Total number of requests",
+    ["service", "endpoint", "method", "status"],
+)
+
+REQUEST_LATENCY = Histogram(
+    "synapse_request_duration_seconds",
+    "Request latency in seconds",
+    ["service", "endpoint", "method"],
+    buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
+)
+
+POOL_SIZE = Gauge(
+    "synapse_pool_size",
+    "Current connection pool size",
+    ["service", "state"],  # state: available, in_use, total
+)
+
+POOL_CONNECTIONS_CREATED = Counter(
+    "synapse_pool_connections_created_total",
+    "Total connections created per pool",
+    ["service"],
+)
+
+ACTIVE_WORKFLOWS = Gauge(
+    "synapse_active_workflows",
+    "Number of currently active workflows",
+    ["workflow_type"],
+)
 
 from clients.resilient_client import (
     ResilientClaudeClient,
@@ -204,6 +243,27 @@ def create_app() -> FastAPI:
         response = await call_next(request)
         duration = time.perf_counter() - start
         response.headers["X-Response-Time"] = f"{duration * 1000:.2f}ms"
+
+        # Track Prometheus metrics (skip /metrics to avoid recursion)
+        if not request.url.path.startswith("/metrics"):
+            # Extract service from path (e.g., /api/v1/claude/plan -> claude)
+            path_parts = request.url.path.split("/")
+            service = path_parts[3] if len(path_parts) > 3 else "gateway"
+            endpoint = path_parts[4] if len(path_parts) > 4 else request.url.path
+
+            REQUEST_COUNT.labels(
+                service=service,
+                endpoint=endpoint,
+                method=request.method,
+                status=response.status_code,
+            ).inc()
+
+            REQUEST_LATENCY.labels(
+                service=service,
+                endpoint=endpoint,
+                method=request.method,
+            ).observe(duration)
+
         return response
 
     return application
@@ -219,6 +279,22 @@ async def health():
 
 @app.get("/metrics")
 async def metrics():
+    """Expose Prometheus metrics endpoint"""
+    # Update pool gauges before generating metrics
+    if pools:
+        for service_name, pool_stats in pools.get_all_stats().items():
+            POOL_SIZE.labels(service=service_name, state="available").set(
+                pool_stats.get("available", 0)
+            )
+            POOL_SIZE.labels(service=service_name, state="in_use").set(pool_stats.get("in_use", 0))
+            POOL_SIZE.labels(service=service_name, state="total").set(pool_stats.get("size", 0))
+
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/metrics/json")
+async def metrics_json():
+    """Legacy JSON metrics endpoint for backward compatibility"""
     result = {"pools": {}, "load_balancers": {}}
 
     if pools:
