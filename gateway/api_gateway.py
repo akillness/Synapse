@@ -22,6 +22,20 @@ from pydantic import BaseModel, Field
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from clients.resilient_client import (  # noqa: E402
+    ResilientClaudeClient,
+    ResilientCodexClient,
+    ResilientGeminiClient,
+)
+from gateway.connection_pool import ConnectionPool, MultiServicePool, PoolConfig  # noqa: E402
+from gateway.load_balancer import (  # noqa: E402
+    LoadBalancer,
+    MultiServiceLoadBalancer,
+    RoundRobinStrategy,
+)
+
+logger = logging.getLogger(__name__)
+
 # Prometheus Metrics
 REQUEST_COUNT = Counter(
     "synapse_requests_total",
@@ -53,20 +67,6 @@ ACTIVE_WORKFLOWS = Gauge(
     "Number of currently active workflows",
     ["workflow_type"],
 )
-
-from clients.resilient_client import (
-    ResilientClaudeClient,
-    ResilientCodexClient,
-    ResilientGeminiClient,
-)
-from gateway.connection_pool import ConnectionPool, MultiServicePool, PoolConfig
-from gateway.load_balancer import (
-    LoadBalancer,
-    MultiServiceLoadBalancer,
-    RoundRobinStrategy,
-)
-
-logger = logging.getLogger(__name__)
 
 
 class WorkflowType(str, Enum):

@@ -24,7 +24,8 @@ RUN pip install --no-cache-dir uv && \
     pydantic>=2.5.0 \
     httpx>=0.26.0 \
     textual>=0.47.0 \
-    rich>=13.7.0
+    rich>=13.7.0 \
+    prometheus-client>=0.19.0
 
 FROM base AS runtime
 
